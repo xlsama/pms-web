@@ -15,7 +15,7 @@ export const request = ofetch.create({
   onRequest({ options }) {
     const token = useAuthStore.getState().token
     if (token) {
-      options.headers.set('Authorization', `Bearer ${token}`)
+      options.headers.set('token', token)
     }
   },
 

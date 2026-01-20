@@ -10,8 +10,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { changePwd } from '@/api/auth'
+import { Spinner } from './ui/spinner'
 
 const schema = z
   .object({
@@ -25,10 +26,19 @@ const schema = z
 
 interface ChangePwdDialogProps {
   trigger?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function ChangePwdDialog({ trigger }: ChangePwdDialogProps) {
-  const [open, setOpen] = useState(false)
+export function ChangePwdDialog({
+  trigger,
+  open: controlledOpen,
+  onOpenChange,
+}: ChangePwdDialogProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : uncontrolledOpen
+  const setOpen = isControlled ? onOpenChange! : setUncontrolledOpen
 
   const form = useForm({
     defaultValues: {
@@ -47,9 +57,7 @@ export function ChangePwdDialog({ trigger }: ChangePwdDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ?? <Button variant="outline">修改密码</Button>}
-      </DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>修改密码</DialogTitle>
@@ -60,57 +68,65 @@ export function ChangePwdDialog({ trigger }: ChangePwdDialogProps) {
             e.stopPropagation()
             form.handleSubmit()
           }}
-          className="space-y-4"
         >
-          <form.Field name="password">
-            {field => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>
-                  新密码 <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={e => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.length > 0 && (
-                  <p className="text-sm text-red-500">{field.state.meta.errors.join(', ')}</p>
-                )}
-              </div>
-            )}
-          </form.Field>
+          <FieldGroup>
+            <form.Field name="password">
+              {field => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>新密码</FieldLabel>
+                    <Input
+                      id={field.name}
+                      type="password"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={e => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                )
+              }}
+            </form.Field>
 
-          <form.Field name="confirmPassword">
-            {field => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>
-                  请再次输入新密码 <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={e => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.length > 0 && (
-                  <p className="text-sm text-red-500">{field.state.meta.errors.join(', ')}</p>
-                )}
-              </div>
-            )}
-          </form.Field>
+            <form.Field name="confirmPassword">
+              {field => {
+                const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>请再次输入新密码</FieldLabel>
+                    <Input
+                      id={field.name}
+                      type="password"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={e => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  </Field>
+                )
+              }}
+            </form.Field>
 
-          <div className="flex justify-end">
-            <form.Subscribe selector={state => state.isSubmitting}>
-              {isSubmitting => (
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? '提交中...' : '提交'}
-                </Button>
-              )}
-            </form.Subscribe>
-          </div>
+            <div className="flex justify-end">
+              <form.Subscribe selector={state => state.isSubmitting}>
+                {isSubmitting => (
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Spinner />
+                        提交中...
+                      </>
+                    ) : (
+                      '提交'
+                    )}
+                  </Button>
+                )}
+              </form.Subscribe>
+            </div>
+          </FieldGroup>
         </form>
       </DialogContent>
     </Dialog>

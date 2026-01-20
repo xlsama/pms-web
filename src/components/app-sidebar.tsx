@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Boxes, ChevronsUpDown, KeyRound, LogOut } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth'
@@ -22,10 +23,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { ChangePwdDialog } from '@/components/change-pwd-dialog'
 
 export function AppSidebar() {
   const user = useAuthStore(state => state.user)
   const clearAuth = useAuthStore(state => state.clearAuth)
+  const [changePwdOpen, setChangePwdOpen] = useState(false)
 
   const handleLogout = () => {
     clearAuth()
@@ -78,7 +81,7 @@ export function AppSidebar() {
           >
             <DropdownMenuLabel>设置</DropdownMenuLabel>
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuItem onSelect={() => setChangePwdOpen(true)}>
                 <KeyRound />
                 修改密码
               </DropdownMenuItem>
@@ -91,6 +94,7 @@ export function AppSidebar() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <ChangePwdDialog open={changePwdOpen} onOpenChange={setChangePwdOpen} />
       </SidebarFooter>
     </Sidebar>
   )
