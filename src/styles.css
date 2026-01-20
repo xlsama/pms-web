@@ -123,3 +123,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Yoopta Editor 暗色模式修复 */
+.dark .yoopta-toolbar,
+.dark .yoopta-action-menu {
+  background-color: hsl(var(--popover));
+  border-color: hsl(var(--border));
+  color: hsl(var(--popover-foreground));
+}
+
+.dark .yoopta-toolbar button:hover,
+.dark .yoopta-action-menu-item:hover {
+  background-color: hsl(var(--accent));
+}

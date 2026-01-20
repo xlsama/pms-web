@@ -1,5 +1,15 @@
 import { useState } from 'react'
-import { Boxes, ChevronsUpDown, KeyRound, LogOut } from 'lucide-react'
+import {
+  Boxes,
+  CalendarDays,
+  Check,
+  ChevronsUpDown,
+  Clock,
+  Folder,
+  KeyRound,
+  LogOut,
+  X,
+} from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -18,6 +28,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -46,14 +57,76 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>日历</SidebarGroupLabel>
+          <SidebarGroupContent>calenar</SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>项目</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/ut-tmp">
-                    <Boxes />
-                    <span>UT模板</span>
-                  </Link>
+                  <span className="text-xs">
+                    <Folder />
+                    <span>星巴克项目1</span>
+                  </span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <span className="text-xs">
+                    <Folder />
+                    <span>星巴克项目2</span>
+                  </span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <span className="text-xs">
+                    <Folder />
+                    <span>星巴克项目3</span>
+                  </span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>UT状态</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <span className="text-xs">
+                    <CalendarDays />
+                    <span>剩余总人天：1</span>
+                  </span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <span className="text-xs">
+                    <Clock />
+                    <span>未提交：1</span>
+                  </span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <span className="text-xs">
+                    <Check />
+                    <span>待审批：1</span>
+                  </span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <span className="text-xs">
+                    <X />
+                    <span>已驳回：1</span>
+                  </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
