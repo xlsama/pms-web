@@ -1,4 +1,4 @@
-import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { ModeToggle } from '@/components/theme-toggle'
+import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: () => {
@@ -40,8 +41,13 @@ function AppLayout() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-          <ModeToggle />
+          <div className="flex items-center">
+            <Button variant="link">
+              <Link to="/ut-tmp">UT模板</Link>
+            </Button>
+            <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+            <ModeToggle />
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 py-4">
