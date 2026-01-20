@@ -1,4 +1,5 @@
-import { Link, Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import { Link, Outlet, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { Menu, Moon, Sun } from 'lucide-react'
 import type { Project } from '@/types/ut'
 import { useAuthStore } from '@/stores/auth'
 import { useUtStore } from '@/stores/ut'
@@ -10,6 +11,17 @@ import { Badge } from '@/components/ui/badge'
 import { ModeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useTheme } from '@/contexts/theme-provider'
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: () => {
@@ -24,6 +36,8 @@ export const Route = createFileRoute('/_app')({
 function AppLayout() {
   const { currentDate, setSelectedDate, setPrefilledProject, setFormOpen } = useUtStore()
   const { data } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
+  const { setTheme } = useTheme()
+  const navigate = useNavigate()
 
   const handleDrop = (project: Project, date: string) => {
     setSelectedDate(date)
@@ -58,12 +72,50 @@ function AppLayout() {
                 </div>
               )}
             </div>
-            <div className="flex items-center">
+
+            {/* Desktop: show buttons */}
+            <div className="hidden items-center md:flex">
               <Button variant="link">
                 <Link to="/ut-tmp">UT模板</Link>
               </Button>
               <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
               <ModeToggle />
+            </div>
+
+            {/* Mobile: dropdown menu */}
+            <div className="md:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="size-4" />
+                    <span className="sr-only">菜单</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate({ to: '/ut-tmp' })}>
+                    UT模板
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Sun className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+                      <Moon className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+                      <span className="ml-2">主题</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => setTheme('light')}>
+                        浅色
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme('dark')}>
+                        深色
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme('system')}>
+                        跟随系统
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 

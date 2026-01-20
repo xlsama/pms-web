@@ -68,7 +68,7 @@ export function UtForm({
   const isValid = totalUt === 1 && allocations.every(a => a.projectId !== null)
 
   const addAllocation = () => {
-    setAllocations([...allocations, { projectId: null, projectName: '', value: 0.25 }])
+    setAllocations([...allocations, { projectId: null, projectName: '', value: 0.1 }])
   }
 
   const removeAllocation = (index: number) => {

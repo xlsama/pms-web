@@ -1,6 +1,6 @@
 import { UtForm } from '../form/ut-form'
 import type { DailyUtSummary, Project } from '@/types/ut'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover'
 import { useUtStore } from '@/stores/ut'
 
 interface UtDayPopoverProps {
@@ -9,9 +9,10 @@ interface UtDayPopoverProps {
   date: string
   projects: Array<Project>
   summary?: DailyUtSummary
+  anchorEl: HTMLElement | null
 }
 
-export function UtDayPopover({ open, onOpenChange, date, projects, summary }: UtDayPopoverProps) {
+export function UtDayPopover({ open, onOpenChange, date, projects, summary, anchorEl }: UtDayPopoverProps) {
   const { prefilledProject, setPrefilledProject, setSelectedDate } = useUtStore()
 
   const handleClose = () => {
@@ -21,11 +22,12 @@ export function UtDayPopover({ open, onOpenChange, date, projects, summary }: Ut
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>填写 UT</DialogTitle>
-        </DialogHeader>
+    <Popover open={open} onOpenChange={onOpenChange}>
+      {anchorEl && <PopoverAnchor virtualRef={{ current: anchorEl }} />}
+      <PopoverContent className="w-[calc(100vw-2rem)] max-w-md lg:max-w-lg p-6" align="start">
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold">填写 UT</h2>
+        </div>
         <UtForm
           date={date}
           projects={projects}
@@ -34,7 +36,7 @@ export function UtDayPopover({ open, onOpenChange, date, projects, summary }: Ut
           onClose={handleClose}
           editable={summary?.editable ?? true}
         />
-      </DialogContent>
-    </Dialog>
+      </PopoverContent>
+    </Popover>
   )
 }

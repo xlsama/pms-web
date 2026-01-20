@@ -1,7 +1,19 @@
-import { UtStatusDot } from '../status/ut-status-badge'
 import type { DailyUtSummary } from '@/types/ut'
 import { UtStatus } from '@/types/ut'
 import { cn } from '@/lib/utils'
+
+// 农历假数据（后续可替换为 chinese-days 库）
+const LUNAR_DAYS = [
+  '初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
+  '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+  '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十',
+]
+
+function getLunarDay(date: string): string {
+  // 假数据：使用日期的天数来模拟农历
+  const d = new Date(date).getDate()
+  return LUNAR_DAYS[(d - 1) % 30]
+}
 
 interface UtDayCellProps {
   date: string
@@ -13,6 +25,7 @@ interface UtDayCellProps {
 export function UtDayCell({ date, isCurrentMonth, isToday, summary }: UtDayCellProps) {
   const day = new Date(date).getDate()
   const hasData = summary && summary.allocations.length > 0
+  const lunarDay = getLunarDay(date)
 
   return (
     <div className="flex h-full flex-col">
@@ -27,7 +40,9 @@ export function UtDayCell({ date, isCurrentMonth, isToday, summary }: UtDayCellP
         >
           {day}
         </span>
-        {hasData && <UtStatusDot status={summary.status} />}
+        <span className={cn('text-xs text-muted-foreground', !isCurrentMonth && 'opacity-50')}>
+          {lunarDay}
+        </span>
       </div>
 
       {/* Allocations preview */}

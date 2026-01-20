@@ -28,6 +28,7 @@ export function UtCalendar() {
   const { currentDate, setCurrentDate, selectedDate, setSelectedDate, setPrefilledProject } =
     useUtStore()
   const [popoverOpen, setPopoverOpen] = useState(false)
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
 
   const { data } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
 
@@ -117,9 +118,10 @@ export function UtCalendar() {
   }, [data])
 
   // Handle day click
-  const handleDayClick = (date: string) => {
+  const handleDayClick = (date: string, element: HTMLElement) => {
     setSelectedDate(date)
     setPrefilledProject(null)
+    setAnchorEl(element)
     setPopoverOpen(true)
   }
 
@@ -127,6 +129,7 @@ export function UtCalendar() {
     setPopoverOpen(false)
     setSelectedDate(null)
     setPrefilledProject(null)
+    setAnchorEl(null)
   }
 
   return (
@@ -186,7 +189,7 @@ export function UtCalendar() {
               isToday={isToday(day)}
               isWeekend={isWeekend(day)}
               summary={summary}
-              onClick={() => handleDayClick(dateStr)}
+              onClick={(el) => handleDayClick(dateStr, el)}
               isSelected={selectedDate === dateStr}
             />
           )
@@ -201,6 +204,7 @@ export function UtCalendar() {
           date={selectedDate}
           projects={projects}
           summary={dailySummaries.get(selectedDate)}
+          anchorEl={anchorEl}
         />
       )}
     </div>
@@ -213,7 +217,7 @@ interface DroppableDayProps {
   isToday: boolean
   isWeekend: boolean
   summary?: DailyUtSummary
-  onClick: () => void
+  onClick: (element: HTMLElement) => void
   isSelected: boolean
 }
 
@@ -244,7 +248,7 @@ function DroppableDay({
         isOver && 'bg-primary/10 ring-2 ring-inset ring-primary',
         isSelected && 'ring-2 ring-inset ring-primary',
       )}
-      onClick={onClick}
+      onClick={(e) => onClick(e.currentTarget)}
     >
       <UtDayCell date={date} isCurrentMonth={isCurrentMonth} isToday={today} summary={summary} />
     </div>
