@@ -4,7 +4,7 @@ import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { z } from 'zod'
 import { Eye, EyeOff } from 'lucide-react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -23,7 +23,7 @@ export const Route = createFileRoute('/login')({
 })
 
 const loginSchema = z.object({
-  username: z.string().min(1, '请输入用户名'),
+  loginName: z.string().min(1, '请输入用户名'),
   password: z.string().min(1, '请输入密码'),
 })
 
@@ -35,45 +35,39 @@ function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: res => {
-      const { token, ...user } = res.data
-      setAuth(token, user)
-      void navigate({ to: '/' })
+      const { token, data } = res
+      setAuth(token, data)
+      navigate({ to: '/' })
     },
   })
 
   const form = useForm({
     defaultValues: {
-      username: '',
+      loginName: '',
       password: '',
     },
     validators: {
       onSubmit: loginSchema,
     },
     onSubmit: ({ value }) => {
-      loginMutation.mutate({ username: value.username, password: value.password })
+      loginMutation.mutate(value)
     },
   })
 
   return (
-    <div
-      className="relative flex min-h-screen items-center justify-center bg-cover bg-center bg-no-repeat p-4"
-      style={{ backgroundImage: `url(${import.meta.env.BASE_URL}login_bg.png)` }}
-    >
-      <Card className="w-full max-w-sm border-white/10 bg-black/40 text-white backdrop-blur-md">
-        <CardHeader className="flex flex-row items-center justify-center gap-3">
-          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Logo" className="size-10" />
-          <span className="text-xl font-semibold tracking-widest">STARBUCKS</span>
-        </CardHeader>
-        <CardContent>
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-muted p-4">
+      <h1 className="mb-8 text-3xl font-bold text-balance">Yechtech PMS</h1>
+      <Card className="w-full max-w-sm">
+        <CardContent className="pt-6">
           <form
             onSubmit={e => {
               e.preventDefault()
-              void form.handleSubmit()
+              form.handleSubmit()
             }}
           >
             <FieldGroup>
               <form.Field
-                name="username"
+                name="loginName"
                 children={field => {
                   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
                   return (
@@ -118,6 +112,7 @@ function LoginPage() {
                           size="icon-sm"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute top-1/2 right-1 size-6 -translate-y-1/2"
+                          aria-label={showPassword ? '隐藏密码' : '显示密码'}
                         >
                           {showPassword ? (
                             <Eye className="size-3.5" />
@@ -139,7 +134,7 @@ function LoginPage() {
                     登录中...
                   </>
                 ) : (
-                  '登 录'
+                  '登录'
                 )}
               </Button>
             </FieldGroup>

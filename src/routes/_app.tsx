@@ -22,6 +22,8 @@ export const Route = createFileRoute('/_app')({
 })
 
 function AppLayout() {
+  const { pathname } = window.location
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -33,7 +35,7 @@ function AppLayout() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbPage>Prompt Project</BreadcrumbPage>
+                  <BreadcrumbPage>{pathname.replace('/', '')}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>

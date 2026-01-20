@@ -1,18 +1,65 @@
-import type { User } from '@/stores/auth'
-import { request } from '@/lib/request'
+import { request, type ApiRes } from '@/lib/request'
 
-export interface LoginParams {
-  username: string
+export function login(req: LoginReq) {
+  return request<LoginRes>('/api/login', {
+    method: 'post',
+    body: req,
+    skip: true,
+  })
+}
+
+export function changePwd(password: string) {
+  return request('/api/changePwd', {
+    method: 'post',
+    body: { password },
+  })
+}
+
+export interface LoginReq {
+  loginName: string
   password: string
 }
 
-export interface LoginResponse {
-  data: User & { token: string }
+export interface LoginRes extends ApiRes<User> {
+  success: boolean
+  exceptions: unknown
+  timestamp: number
+  token: string
+  theLevel: unknown
+  weChatUserInfo: unknown
 }
 
-export function login(params: LoginParams) {
-  return request<LoginResponse>('/api/login', {
-    method: 'POST',
-    body: params,
-  })
+export interface User {
+  id: number
+  nickName: string | null
+  name: string
+  loginName: string
+  password: string
+  status: string
+  createTime: string
+  createBy: number
+  isAdmin: number
+  modifyTime: string | null
+  modifyBy: number
+  openId: string | null
+  avatar: string | null
+  province: string | null
+  city: string | null
+  district: string | null
+  addr: string | null
+  mobile: string | null
+  type: string
+  levelId: number
+  level: string | null
+  deleted: boolean
+  userCode: string
+  deptCode: string
+  deptFullName: string | null
+  levelCoefficient: number
+  entryTime: string
+  quitTime: string | null
+  utilization: number
+  targetUtilization: number
+  averageDailySalary: string | null
+  dailyShare: string | null
 }
