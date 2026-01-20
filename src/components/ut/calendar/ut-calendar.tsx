@@ -1,0 +1,255 @@
+import { useState, useMemo } from 'react'
+import { useDroppable } from '@dnd-kit/core'
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+  isToday,
+  isWeekend,
+} from 'date-fns'
+import { zhCN } from 'date-fns/locale'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { UtDayCell } from './ut-day-cell'
+import { UtDayPopover } from './ut-day-popover'
+import { useMonthlyUt } from '@/hooks/use-ut'
+import { useUtStore } from '@/stores/ut'
+import { UtStatus } from '@/types/ut'
+import type { Project, UtAllocation, DailyUtSummary } from '@/types/ut'
+import { cn } from '@/lib/utils'
+
+const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日']
+
+export function UtCalendar() {
+  const { currentDate, setCurrentDate, selectedDate, setSelectedDate, setPrefilledProject } =
+    useUtStore()
+  const [popoverOpen, setPopoverOpen] = useState(false)
+
+  const { data } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
+
+  // Navigate months
+  const navigateMonth = (delta: number) => {
+    const newDate = new Date(currentDate)
+    newDate.setMonth(newDate.getMonth() + delta)
+    setCurrentDate(newDate)
+  }
+
+  const goToToday = () => {
+    setCurrentDate(new Date())
+  }
+
+  // Build calendar days
+  const calendarDays = useMemo(() => {
+    const monthStart = startOfMonth(currentDate)
+    const monthEnd = endOfMonth(currentDate)
+    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 })
+    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 })
+
+    return eachDayOfInterval({ start: calendarStart, end: calendarEnd })
+  }, [currentDate])
+
+  // Build daily summaries map
+  const dailySummaries = useMemo(() => {
+    const map = new Map<string, DailyUtSummary>()
+
+    if (data?.list) {
+      // Group by date
+      const byDate = new Map<string, UtAllocation[]>()
+
+      for (const item of data.list) {
+        if (item.date) {
+          const existing = byDate.get(item.date) || []
+          existing.push({
+            id: item.id,
+            date: item.date,
+            projectId: item.projectId,
+            projectName: item.projectName,
+            value: item.val,
+            status: item.status,
+          })
+          byDate.set(item.date, existing)
+        }
+      }
+
+      for (const [date, allocations] of byDate) {
+        const totalUt = allocations.reduce((sum, a) => sum + a.value, 0)
+        const status = allocations[0]?.status || UtStatus.None
+        const editable = status !== UtStatus.Confirmed
+
+        map.set(date, {
+          date,
+          isWorkday: !isWeekend(new Date(date)),
+          allocations,
+          totalUt,
+          status,
+          editable,
+        })
+      }
+    }
+
+    return map
+  }, [data])
+
+  // Extract projects from data
+  const projects: Project[] = useMemo(() => {
+    if (!data?.list) return []
+
+    const projectMap = new Map<number, Project>()
+
+    for (const item of data.list) {
+      if (item.projectId && !projectMap.has(item.projectId)) {
+        projectMap.set(item.projectId, {
+          id: item.projectId,
+          name: item.projectName,
+          code: item.projectCode || '',
+          manDaysRemaining: item.manDaysRemaining,
+          manDaysUsed: item.manDaysUsed,
+          totalManDays: item.totalManDays,
+        })
+      }
+    }
+
+    return Array.from(projectMap.values())
+  }, [data])
+
+  // Handle day click
+  const handleDayClick = (date: string) => {
+    setSelectedDate(date)
+    setPrefilledProject(null)
+    setPopoverOpen(true)
+  }
+
+  const handlePopoverClose = () => {
+    setPopoverOpen(false)
+    setSelectedDate(null)
+    setPrefilledProject(null)
+  }
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <div className="flex items-center gap-2">
+          <h2 className="text-xl font-medium">
+            {format(currentDate, 'yyyy年M月', { locale: zhCN })}
+          </h2>
+          <Button variant="outline" size="sm" onClick={goToToday}>
+            今天
+          </Button>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={() => navigateMonth(-1)}>
+            <ChevronLeft className="size-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => navigateMonth(1)}>
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Weekday header */}
+      <div className="grid grid-cols-7 border-b">
+        {WEEKDAYS.map((day, i) => (
+          <div
+            key={day}
+            className={cn(
+              'py-2 text-center text-sm font-medium',
+              i >= 5 && 'text-muted-foreground',
+            )}
+          >
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div
+        className="grid min-h-0 flex-1 grid-cols-7"
+        style={{ gridTemplateRows: `repeat(${Math.ceil(calendarDays.length / 7)}, minmax(0, 1fr))` }}
+      >
+        {calendarDays.map(day => {
+          const dateStr = format(day, 'yyyy-MM-dd')
+          const summary = dailySummaries.get(dateStr)
+          const isCurrentMonth = isSameMonth(day, currentDate)
+
+          return (
+            <DroppableDay
+              key={dateStr}
+              date={dateStr}
+              isCurrentMonth={isCurrentMonth}
+              isToday={isToday(day)}
+              isWeekend={isWeekend(day)}
+              summary={summary}
+              onClick={() => handleDayClick(dateStr)}
+              isSelected={selectedDate === dateStr}
+            />
+          )
+        })}
+      </div>
+
+      {/* Popover for editing */}
+      {selectedDate && (
+        <UtDayPopover
+          open={popoverOpen}
+          onOpenChange={open => !open && handlePopoverClose()}
+          date={selectedDate}
+          projects={projects}
+          summary={dailySummaries.get(selectedDate)}
+        />
+      )}
+    </div>
+  )
+}
+
+interface DroppableDayProps {
+  date: string
+  isCurrentMonth: boolean
+  isToday: boolean
+  isWeekend: boolean
+  summary?: DailyUtSummary
+  onClick: () => void
+  isSelected: boolean
+}
+
+function DroppableDay({
+  date,
+  isCurrentMonth,
+  isToday: today,
+  isWeekend: weekend,
+  summary,
+  onClick,
+  isSelected,
+}: DroppableDayProps) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `day-${date}`,
+    data: {
+      type: 'calendar-day',
+      date,
+    },
+  })
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        'min-h-24 cursor-pointer border-b border-r p-1 transition-colors',
+        !isCurrentMonth && 'bg-muted/30',
+        weekend && 'bg-muted/20',
+        isOver && 'bg-primary/10 ring-2 ring-inset ring-primary',
+        isSelected && 'ring-2 ring-inset ring-primary',
+      )}
+      onClick={onClick}
+    >
+      <UtDayCell
+        date={date}
+        isCurrentMonth={isCurrentMonth}
+        isToday={today}
+        summary={summary}
+      />
+    </div>
+  )
+}

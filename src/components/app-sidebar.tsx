@@ -1,15 +1,5 @@
 import { useState } from 'react'
-import {
-  Boxes,
-  CalendarDays,
-  Check,
-  ChevronsUpDown,
-  Clock,
-  Folder,
-  KeyRound,
-  LogOut,
-  X,
-} from 'lucide-react'
+import { ChevronsUpDown, KeyRound, LogOut } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -32,9 +22,10 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { ChangePwdDialog } from '@/components/change-pwd-dialog'
+import { SidebarCalendar } from '@/components/ut/sidebar/sidebar-calendar'
+import { SidebarProjects } from '@/components/ut/sidebar/sidebar-projects'
 
 export function AppSidebar() {
   const user = useAuthStore(state => state.user)
@@ -49,87 +40,26 @@ export function AppSidebar() {
   return (
     <Sidebar variant="inset">
       <SidebarHeader>
-        <SidebarMenuButton asChild className="h-auto">
-          <Link to="/">
-            <img src="/logo.png" className="mx-auto w-1/2" />
-          </Link>
-        </SidebarMenuButton>
+        <Link to="/">
+          <img src="/logo.png" className="mx-auto w-1/2" />
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>日历</SidebarGroupLabel>
-          <SidebarGroupContent>calenar</SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>项目</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <span className="text-xs">
-                    <Folder />
-                    <span>星巴克项目1</span>
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <span className="text-xs">
-                    <Folder />
-                    <span>星巴克项目2</span>
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <span className="text-xs">
-                    <Folder />
-                    <span>星巴克项目3</span>
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            <SidebarCalendar />
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>UT状态</SidebarGroupLabel>
+        <SidebarGroup className="flex-1">
+          <SidebarGroupLabel>
+            项目
+            <span className="ml-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+              （拖拽到日历）
+            </span>
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <span className="text-xs">
-                    <CalendarDays />
-                    <span>剩余总人天：1</span>
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <span className="text-xs">
-                    <Clock />
-                    <span>未提交：1</span>
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <span className="text-xs">
-                    <Check />
-                    <span>待审批：1</span>
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <span className="text-xs">
-                    <X />
-                    <span>已驳回：1</span>
-                  </span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            <SidebarProjects />
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

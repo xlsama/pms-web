@@ -17,6 +17,36 @@ export const getRejectUt = () => {
   return request<UtItem[]>('/api/user/reject')
 }
 
+// Get monthly UT data
+export const getMonthlyUt = (req: { year: number; month: number }) => {
+  // Use first day of month as date parameter
+  const date = `${req.year}-${String(req.month).padStart(2, '0')}-01`
+  return request<ConsumeRes>('/api/user/consume', {
+    params: { date },
+  })
+}
+
+// Get weekly UT data
+export const getWeeklyUt = (req: { weekIndex: number }) => {
+  return request<ConsumeRes>('/api/user/consume', {
+    params: { weekIndex: req.weekIndex },
+  })
+}
+
+// Get user projects
+export const getUserProjects = () => {
+  return request<ProjectListItem[]>('/api/user/projects')
+}
+
+export interface ProjectListItem {
+  id: number
+  name: string
+  code: string
+  manDaysRemaining: number
+  manDaysUsed: number
+  totalManDays: number
+}
+
 export interface UpdateConsumeReq {
   weekIndex?: number
   list: {
