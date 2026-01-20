@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -6,12 +5,12 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
 } from '@dnd-kit/core'
-import { useUtStore } from '@/stores/ut'
 import { DragOverlayContent } from './drag-overlay'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
+import type { ReactNode } from 'react'
 import type { Project } from '@/types/ut'
+import { useUtStore } from '@/stores/ut'
 
 interface DndProviderProps {
   children: ReactNode
@@ -46,7 +45,11 @@ export function UtDndProvider({ children, onDrop }: DndProviderProps) {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
 
-    if (over && active.data.current?.type === 'project' && over.data.current?.type === 'calendar-day') {
+    if (
+      over &&
+      active.data.current?.type === 'project' &&
+      over.data.current?.type === 'calendar-day'
+    ) {
       const project = active.data.current.project as Project
       const date = over.data.current.date as string
       onDrop?.(project, date)

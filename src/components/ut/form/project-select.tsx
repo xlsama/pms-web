@@ -1,3 +1,4 @@
+import type { Project } from '@/types/ut'
 import {
   Select,
   SelectContent,
@@ -5,10 +6,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { Project } from '@/types/ut'
 
 interface ProjectSelectProps {
-  projects: Project[]
+  projects: Array<Project>
   value?: number
   onChange: (projectId: number, projectName: string) => void
   disabled?: boolean

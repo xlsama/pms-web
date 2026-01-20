@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { ConsumeRes, UpdateConsumeReq, UtItem } from '@/api/ut'
 import { UtStatus } from '@/api/ut'
-import type { ConsumeRes, UtItem, UpdateConsumeReq } from '@/api/ut'
 
 export const utKeys = {
   all: ['ut'] as const,
@@ -11,7 +11,7 @@ export const utKeys = {
 }
 
 // Mock projects data
-const mockProjects: UtItem[] = [
+const mockProjects: Array<UtItem> = [
   {
     id: 1,
     userId: 1,
@@ -132,8 +132,8 @@ const mockProjects: UtItem[] = [
 ]
 
 // Generate mock UT records for a month
-function generateMockUtRecords(year: number, month: number): UtItem[] {
-  const records: UtItem[] = []
+function generateMockUtRecords(year: number, month: number): Array<UtItem> {
+  const records: Array<UtItem> = []
   const daysInMonth = new Date(year, month, 0).getDate()
 
   for (let day = 1; day <= daysInMonth; day++) {
@@ -174,7 +174,7 @@ function getMockConsumeRes(year: number, month: number): ConsumeRes {
   const daysInMonth = new Date(year, month, 0).getDate()
 
   // Calculate uncommitted workdays
-  const uncommittedCount: { workDate: string; workHours: number }[] = []
+  const uncommittedCount: Array<{ workDate: string; workHours: number }> = []
   for (let day = 1; day <= daysInMonth; day++) {
     const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     const dayOfWeek = new Date(year, month - 1, day).getDay()
@@ -235,7 +235,7 @@ export function useUserProjects() {
 export function useRejectedUt() {
   return useQuery({
     queryKey: utKeys.rejected(),
-    queryFn: () => Promise.resolve([] as UtItem[]),
+    queryFn: () => Promise.resolve([] as Array<UtItem>),
   })
 }
 

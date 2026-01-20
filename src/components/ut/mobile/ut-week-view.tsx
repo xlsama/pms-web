@@ -1,24 +1,24 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
-  format,
-  startOfWeek,
-  endOfWeek,
-  eachDayOfInterval,
   addWeeks,
-  subWeeks,
+  eachDayOfInterval,
+  endOfWeek,
+  format,
+  getWeek,
   isToday,
   isWeekend,
-  getWeek,
+  startOfWeek,
+  subWeeks,
 } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { UtDayCard } from './ut-day-card'
 import { UtDayDrawer } from './ut-day-drawer'
+import type { DailyUtSummary, Project, UtAllocation } from '@/types/ut'
+import { Button } from '@/components/ui/button'
 import { useMonthlyUt } from '@/hooks/use-ut'
 import { useUtStore } from '@/stores/ut'
 import { UtStatus } from '@/types/ut'
-import type { Project, UtAllocation, DailyUtSummary } from '@/types/ut'
 
 export function UtWeekView() {
   const { currentDate, setCurrentDate, selectedDate, setSelectedDate } = useUtStore()
@@ -46,7 +46,7 @@ export function UtWeekView() {
     const map = new Map<string, DailyUtSummary>()
 
     if (data?.list) {
-      const byDate = new Map<string, UtAllocation[]>()
+      const byDate = new Map<string, Array<UtAllocation>>()
 
       for (const item of data.list) {
         if (item.date) {
@@ -83,7 +83,7 @@ export function UtWeekView() {
   }, [data])
 
   // Extract projects
-  const projects: Project[] = useMemo(() => {
+  const projects: Array<Project> = useMemo(() => {
     if (!data?.list) return []
 
     const projectMap = new Map<number, Project>()

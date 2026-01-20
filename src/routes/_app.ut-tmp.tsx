@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDebounceFn } from 'ahooks'
-import { createFileRoute } from '@tanstack/react-router'
-import YooptaEditor, { createYooptaEditor, type YooptaContentValue } from '@yoopta/editor'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
+import YooptaEditor, { createYooptaEditor } from '@yoopta/editor'
 import Paragraph from '@yoopta/paragraph'
-import { HeadingTwo, HeadingThree } from '@yoopta/headings'
+import { HeadingThree, HeadingTwo } from '@yoopta/headings'
 import { BulletedList, NumberedList } from '@yoopta/lists'
 import Code from '@yoopta/code'
 import Divider from '@yoopta/divider'
@@ -11,15 +11,15 @@ import Image from '@yoopta/image'
 import Table from '@yoopta/table'
 import Link from '@yoopta/link'
 import Accordion from '@yoopta/accordion'
-import { Bold, Italic, CodeMark } from '@yoopta/marks'
+import { Bold, CodeMark, Italic } from '@yoopta/marks'
 import { markdown } from '@yoopta/exports'
 import ActionMenuList, { DefaultActionMenuRender } from '@yoopta/action-menu-list'
 import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar'
 import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
-import { useRouter } from '@tanstack/react-router'
+import type { YooptaContentValue } from '@yoopta/editor'
+import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/_app/ut-tmp')({
   component: RouteComponent,
@@ -40,8 +40,7 @@ const DEFAULT_TEMPLATE = `## 本月一共 10 UT，\`01.01~01.31\`
 - 联调打标签接口
 `
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const plugins: any[] = [
+const plugins: Array<any> = [
   Paragraph,
   HeadingTwo,
   HeadingThree,

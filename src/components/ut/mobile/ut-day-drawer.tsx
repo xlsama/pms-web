@@ -1,17 +1,12 @@
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/components/ui/drawer'
 import { UtForm } from '../form/ut-form'
-import type { Project, DailyUtSummary } from '@/types/ut'
+import type { DailyUtSummary, Project } from '@/types/ut'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 
 interface UtDayDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   date: string
-  projects: Project[]
+  projects: Array<Project>
   summary?: DailyUtSummary
 }
 

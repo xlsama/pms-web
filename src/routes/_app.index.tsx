@@ -11,8 +11,6 @@ function RouteComponent() {
   const isMobile = useIsMobile()
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      {isMobile ? <UtWeekView /> : <UtCalendar />}
-    </div>
+    <div className="flex h-full min-h-0 flex-col">{isMobile ? <UtWeekView /> : <UtCalendar />}</div>
   )
 }

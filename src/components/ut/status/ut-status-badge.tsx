@@ -50,7 +50,11 @@ export function UtStatusDot({ status, className }: UtStatusBadgeProps) {
 
   return (
     <span
-      className={cn('inline-block size-2 rounded-full', dotColors[status] || dotColors[UtStatus.None], className)}
+      className={cn(
+        'inline-block size-2 rounded-full',
+        dotColors[status] || dotColors[UtStatus.None],
+        className,
+      )}
     />
   )
 }

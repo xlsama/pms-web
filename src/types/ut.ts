@@ -1,4 +1,4 @@
-import type { UtStatus, UtItem } from '@/api/ut'
+import type { UtItem, UtStatus } from '@/api/ut'
 
 // Re-export for convenience
 export { UtStatus } from '@/api/ut'
@@ -29,7 +29,7 @@ export interface UtAllocation {
 export interface DailyUtSummary {
   date: string // yyyy-MM-dd
   isWorkday: boolean
-  allocations: UtAllocation[]
+  allocations: Array<UtAllocation>
   totalUt: number
   status: UtStatus
   editable: boolean
@@ -39,8 +39,8 @@ export interface DailyUtSummary {
 export interface MonthlyUtData {
   year: number
   month: number
-  days: DailyUtSummary[]
-  projects: Project[]
+  days: Array<DailyUtSummary>
+  projects: Array<Project>
   stats: {
     totalManDaysRemaining: number
     uncommittedCount: number
@@ -54,19 +54,19 @@ export interface WeeklyUtData {
   weekIndex: number
   startDate: string
   endDate: string
-  days: DailyUtSummary[]
-  projects: Project[]
+  days: Array<DailyUtSummary>
+  projects: Array<Project>
 }
 
 // Form data for submitting UT
 export interface UtFormData {
   date: string
-  allocations: {
+  allocations: Array<{
     projectId: number
     projectName: string
     value: number
     utType: number
-  }[]
+  }>
 }
 
 // Drag data for dnd-kit

@@ -1,15 +1,15 @@
+import { DraggableProject } from '../dnd/draggable-project'
+import type { Project } from '@/types/ut'
 import { useMonthlyUt } from '@/hooks/use-ut'
 import { useUtStore } from '@/stores/ut'
-import { DraggableProject } from '../dnd/draggable-project'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { Project } from '@/types/ut'
 
 export function SidebarProjects() {
   const { currentDate } = useUtStore()
   const { data, isLoading } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
 
   // Transform UtItem list to Project[]
-  const projects: Project[] =
+  const projects: Array<Project> =
     data?.list
       ?.filter(item => item.projectId && !item.hasChildren)
       ?.reduce((acc, item) => {
@@ -25,7 +25,7 @@ export function SidebarProjects() {
           })
         }
         return acc
-      }, [] as Project[]) || []
+      }, [] as Array<Project>) || []
 
   if (isLoading) {
     return (

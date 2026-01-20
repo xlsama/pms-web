@@ -1,6 +1,6 @@
 import { UtStatusDot } from '../status/ut-status-badge'
-import { UtStatus } from '@/types/ut'
 import type { DailyUtSummary } from '@/types/ut'
+import { UtStatus } from '@/types/ut'
 import { cn } from '@/lib/utils'
 
 interface UtDayCellProps {

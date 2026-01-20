@@ -1,13 +1,13 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { UtForm } from '../form/ut-form'
+import type { DailyUtSummary, Project } from '@/types/ut'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useUtStore } from '@/stores/ut'
-import type { Project, DailyUtSummary } from '@/types/ut'
 
 interface UtDayPopoverProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   date: string
-  projects: Project[]
+  projects: Array<Project>
   summary?: DailyUtSummary
 }
 

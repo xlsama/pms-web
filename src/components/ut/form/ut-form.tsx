@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
+import { UtStatusBadge } from '../status/ut-status-badge'
 import { ProjectSelect } from './project-select'
 import { UtValueInput } from './ut-value-input'
-import { UtStatusBadge } from '../status/ut-status-badge'
-import { UtStatus } from '@/types/ut'
 import type { Project, UtAllocation } from '@/types/ut'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { UtStatus } from '@/types/ut'
 import { useSubmitUt } from '@/hooks/use-ut'
 import { cn } from '@/lib/utils'
 
 interface UtFormProps {
   date: string
-  projects: Project[]
-  existingAllocations?: UtAllocation[]
+  projects: Array<Project>
+  existingAllocations?: Array<UtAllocation>
   prefilledProject?: Project | null
   onClose?: () => void
   editable?: boolean
@@ -37,7 +37,7 @@ export function UtForm({
   onClose,
   editable = true,
 }: UtFormProps) {
-  const [allocations, setAllocations] = useState<AllocationItem[]>([])
+  const [allocations, setAllocations] = useState<Array<AllocationItem>>([])
   const submitUt = useSubmitUt()
 
   // Initialize allocations from existing or prefilled
@@ -123,12 +123,18 @@ export function UtForm({
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium">{formattedDate}</p>
-          {existingAllocations.length > 0 && <UtStatusBadge status={overallStatus} className="mt-1" />}
+          {existingAllocations.length > 0 && (
+            <UtStatusBadge status={overallStatus} className="mt-1" />
+          )}
         </div>
         <div
           className={cn(
             'text-lg font-bold',
-            totalUt === 1 ? 'text-green-600' : totalUt > 1 ? 'text-red-600' : 'text-muted-foreground',
+            totalUt === 1
+              ? 'text-green-600'
+              : totalUt > 1
+                ? 'text-red-600'
+                : 'text-muted-foreground',
           )}
         >
           {totalUt} / 1 UT
@@ -156,7 +162,9 @@ export function UtForm({
             <ProjectSelect
               projects={projects}
               value={allocation.projectId ?? undefined}
-              onChange={(projectId, projectName) => updateAllocation(index, { projectId, projectName })}
+              onChange={(projectId, projectName) =>
+                updateAllocation(index, { projectId, projectName })
+              }
               disabled={!canEdit}
             />
 
@@ -173,7 +181,13 @@ export function UtForm({
       </div>
 
       {canEdit && totalUt < 1 && (
-        <Button type="button" variant="outline" size="sm" className="w-full" onClick={addAllocation}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={addAllocation}
+        >
           <Plus className="mr-1 size-4" />
           添加项目
         </Button>

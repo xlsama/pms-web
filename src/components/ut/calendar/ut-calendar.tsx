@@ -1,25 +1,25 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
   eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
   isSameMonth,
   isToday,
   isWeekend,
+  startOfMonth,
+  startOfWeek,
 } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { UtDayCell } from './ut-day-cell'
 import { UtDayPopover } from './ut-day-popover'
+import type { DailyUtSummary, Project, UtAllocation } from '@/types/ut'
+import { Button } from '@/components/ui/button'
 import { useMonthlyUt } from '@/hooks/use-ut'
 import { useUtStore } from '@/stores/ut'
 import { UtStatus } from '@/types/ut'
-import type { Project, UtAllocation, DailyUtSummary } from '@/types/ut'
 import { cn } from '@/lib/utils'
 
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日']
@@ -58,7 +58,7 @@ export function UtCalendar() {
 
     if (data?.list) {
       // Group by date
-      const byDate = new Map<string, UtAllocation[]>()
+      const byDate = new Map<string, Array<UtAllocation>>()
 
       for (const item of data.list) {
         if (item.date) {
@@ -95,7 +95,7 @@ export function UtCalendar() {
   }, [data])
 
   // Extract projects from data
-  const projects: Project[] = useMemo(() => {
+  const projects: Array<Project> = useMemo(() => {
     if (!data?.list) return []
 
     const projectMap = new Map<number, Project>()
@@ -132,7 +132,7 @@ export function UtCalendar() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between border-b px-4 py-3">
+      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
         <div className="flex items-center gap-2">
           <h2 className="text-xl font-medium">
             {format(currentDate, 'yyyy年M月', { locale: zhCN })}
@@ -152,7 +152,7 @@ export function UtCalendar() {
       </div>
 
       {/* Weekday header */}
-      <div className="grid grid-cols-7 border-b">
+      <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-800">
         {WEEKDAYS.map((day, i) => (
           <div
             key={day}
@@ -169,7 +169,9 @@ export function UtCalendar() {
       {/* Calendar grid */}
       <div
         className="grid min-h-0 flex-1 grid-cols-7"
-        style={{ gridTemplateRows: `repeat(${Math.ceil(calendarDays.length / 7)}, minmax(0, 1fr))` }}
+        style={{
+          gridTemplateRows: `repeat(${Math.ceil(calendarDays.length / 7)}, minmax(0, 1fr))`,
+        }}
       >
         {calendarDays.map(day => {
           const dateStr = format(day, 'yyyy-MM-dd')
@@ -236,7 +238,7 @@ function DroppableDay({
     <div
       ref={setNodeRef}
       className={cn(
-        'min-h-24 cursor-pointer border-b border-r p-1 transition-colors',
+        'min-h-24 cursor-pointer border-b border-r border-gray-200 p-1 transition-colors dark:border-gray-800',
         !isCurrentMonth && 'bg-muted/30',
         weekend && 'bg-muted/20',
         isOver && 'bg-primary/10 ring-2 ring-inset ring-primary',
@@ -244,12 +246,7 @@ function DroppableDay({
       )}
       onClick={onClick}
     >
-      <UtDayCell
-        date={date}
-        isCurrentMonth={isCurrentMonth}
-        isToday={today}
-        summary={summary}
-      />
+      <UtDayCell date={date} isCurrentMonth={isCurrentMonth} isToday={today} summary={summary} />
     </div>
   )
 }

@@ -1,4 +1,5 @@
-import { request, type ApiRes } from '@/lib/request'
+import type { ApiRes } from '@/lib/request'
+import { request } from '@/lib/request'
 
 export function login(req: LoginReq) {
   return request<LoginRes>('/api/login', {

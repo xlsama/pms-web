@@ -1,7 +1,7 @@
 import { useDraggable } from '@dnd-kit/core'
 import { Folder, GripVertical } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { Project } from '@/types/ut'
+import { cn } from '@/lib/utils'
 
 interface DraggableProjectProps {
   project: Project

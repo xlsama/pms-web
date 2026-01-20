@@ -20,7 +20,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenu,
   SidebarMenuButton,
 } from '@/components/ui/sidebar'
 import { ChangePwdDialog } from '@/components/change-pwd-dialog'

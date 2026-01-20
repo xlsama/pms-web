@@ -1,4 +1,5 @@
-import { Outlet, createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { Link, Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import type { Project } from '@/types/ut'
 import { useAuthStore } from '@/stores/auth'
 import { useUtStore } from '@/stores/ut'
 import { useMonthlyUt } from '@/hooks/use-ut'
@@ -9,7 +10,6 @@ import { Badge } from '@/components/ui/badge'
 import { ModeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
-import type { Project } from '@/types/ut'
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: () => {

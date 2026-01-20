@@ -14,7 +14,7 @@ export const updateConsume = (req: UpdateConsumeReq) => {
 }
 
 export const getRejectUt = () => {
-  return request<UtItem[]>('/api/user/reject')
+  return request<Array<UtItem>>('/api/user/reject')
 }
 
 // Get monthly UT data
@@ -35,7 +35,7 @@ export const getWeeklyUt = (req: { weekIndex: number }) => {
 
 // Get user projects
 export const getUserProjects = () => {
-  return request<ProjectListItem[]>('/api/user/projects')
+  return request<Array<ProjectListItem>>('/api/user/projects')
 }
 
 export interface ProjectListItem {
@@ -49,7 +49,7 @@ export interface ProjectListItem {
 
 export interface UpdateConsumeReq {
   weekIndex?: number
-  list: {
+  list: Array<{
     /**
      * example: 2025-12-01
      */
@@ -60,7 +60,7 @@ export interface UpdateConsumeReq {
     type: string
     utType: number
     val: number
-  }[]
+  }>
 }
 
 export interface ConsumeRes {
@@ -75,7 +75,7 @@ export interface ConsumeRes {
   checkCount: number
   rejectedCount: number
   expiredCount: number | null
-  list: UtItem[]
+  list: Array<UtItem>
 }
 
 export enum UtStatus {
