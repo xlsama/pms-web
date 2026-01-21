@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import {
   eachDayOfInterval,
@@ -25,21 +25,30 @@ import { cn } from '@/lib/utils'
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日']
 
 export function UtCalendar() {
-  const { currentDate, setCurrentDate, selectedDate, setSelectedDate, setPrefilledProject } =
+  const { currentDate, setCurrentDate, selectedDate, setSelectedDate, setPrefilledProject, setProjects, formOpen, setFormOpen } =
     useUtStore()
-  const [popoverOpen, setPopoverOpen] = useState(false)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
+
+  // Sync formOpen from drag-drop to local popover state
+  useEffect(() => {
+    if (formOpen && selectedDate && !anchorEl) {
+      // Find the day cell element for the selected date
+      const dayCell = document.querySelector<HTMLElement>(`[data-date="${selectedDate}"]`)
+      if (dayCell) {
+        setAnchorEl(dayCell)
+      }
+    }
+  }, [formOpen, selectedDate, anchorEl])
 
   const { data } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
 
-  // Navigate months
-  const navigateMonth = (delta: number) => {
+  function navigateMonth(delta: number): void {
     const newDate = new Date(currentDate)
     newDate.setMonth(newDate.getMonth() + delta)
     setCurrentDate(newDate)
   }
 
-  const goToToday = () => {
+  function goToToday(): void {
     setCurrentDate(new Date())
   }
 
@@ -117,16 +126,20 @@ export function UtCalendar() {
     return Array.from(projectMap.values())
   }, [data])
 
-  // Handle day click
-  const handleDayClick = (date: string, element: HTMLElement) => {
+  // Sync projects to store
+  useEffect(() => {
+    setProjects(projects)
+  }, [projects, setProjects])
+
+  function handleDayClick(date: string, element: HTMLElement): void {
     setSelectedDate(date)
     setPrefilledProject(null)
     setAnchorEl(element)
-    setPopoverOpen(true)
+    setFormOpen(true)
   }
 
-  const handlePopoverClose = () => {
-    setPopoverOpen(false)
+  function handlePopoverClose(): void {
+    setFormOpen(false)
     setSelectedDate(null)
     setPrefilledProject(null)
     setAnchorEl(null)
@@ -199,7 +212,7 @@ export function UtCalendar() {
       {/* Popover for editing */}
       {selectedDate && (
         <UtDayPopover
-          open={popoverOpen}
+          open={formOpen}
           onOpenChange={open => !open && handlePopoverClose()}
           date={selectedDate}
           projects={projects}
@@ -241,6 +254,7 @@ function DroppableDay({
   return (
     <div
       ref={setNodeRef}
+      data-date={date}
       className={cn(
         'min-h-24 cursor-pointer border-b border-r border-gray-200 p-1 transition-colors dark:border-gray-800',
         !isCurrentMonth && 'bg-muted/30',

@@ -21,6 +21,10 @@ interface UtState {
   // Pre-filled project from drag
   prefilledProject: Project | null
   setPrefilledProject: (project: Project | null) => void
+
+  // All available projects
+  projects: Array<Project>
+  setProjects: (projects: Array<Project>) => void
 }
 
 export const useUtStore = create<UtState>()(set => ({
@@ -38,4 +42,7 @@ export const useUtStore = create<UtState>()(set => ({
 
   prefilledProject: null,
   setPrefilledProject: prefilledProject => set({ prefilledProject }),
+
+  projects: [],
+  setProjects: projects => set({ projects }),
 }))

@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
+import { RotateCcw } from 'lucide-react'
 import { zhCN } from 'date-fns/locale'
-import { Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { UtStatusBadge } from '../status/ut-status-badge'
-import { ProjectSelect } from './project-select'
 import { UtValueInput } from './ut-value-input'
 import type { Project, UtAllocation } from '@/types/ut'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { UtStatus } from '@/types/ut'
 import { useSubmitUt } from '@/hooks/use-ut'
+import { useUtStore } from '@/stores/ut'
 import { cn } from '@/lib/utils'
+
+function getTotalColorClass(total: number): string {
+  if (total === 1) return 'text-green-600'
+  if (total > 1) return 'text-red-600'
+  return 'text-muted-foreground'
+}
 
 interface UtFormProps {
   date: string
@@ -24,7 +29,7 @@ interface UtFormProps {
 
 interface AllocationItem {
   id?: number
-  projectId: number | null
+  projectId: number
   projectName: string
   value: number
 }
@@ -38,58 +43,67 @@ export function UtForm({
   editable = true,
 }: UtFormProps) {
   const [allocations, setAllocations] = useState<Array<AllocationItem>>([])
+  const [hasInitialized, setHasInitialized] = useState(false)
   const submitUt = useSubmitUt()
 
-  // Initialize allocations from existing or prefilled
+  // Get projects from store as fallback
+  const storeProjects = useUtStore(s => s.projects)
+  const projectList = projects.length > 0 ? projects : storeProjects
+
+  // Initialize allocations from existing or create default for all projects
   useEffect(() => {
-    if (existingAllocations.length > 0) {
-      setAllocations(
-        existingAllocations.map(a => ({
-          id: a.id,
-          projectId: a.projectId,
-          projectName: a.projectName,
-          value: a.value,
-        })),
-      )
-    } else if (prefilledProject) {
-      setAllocations([
-        {
-          projectId: prefilledProject.id,
-          projectName: prefilledProject.name,
-          value: 0.5,
-        },
-      ])
-    } else {
-      setAllocations([{ projectId: null, projectName: '', value: 0.5 }])
-    }
-  }, [existingAllocations, prefilledProject])
+    if (projectList.length === 0 || hasInitialized) return
 
-  const totalUt = allocations.reduce((sum, a) => sum + a.value, 0)
-  const isValid = totalUt === 1 && allocations.every(a => a.projectId !== null)
+    const existingMap = new Map(existingAllocations.map(a => [a.projectId, a]))
 
-  const addAllocation = () => {
-    setAllocations([...allocations, { projectId: null, projectName: '', value: 0.1 }])
+    setAllocations(
+      projectList.map(p => {
+        const existing = existingMap.get(p.id)
+        const isPrefilled = prefilledProject?.id === p.id
+        const defaultValue = isPrefilled && !existing ? 1 : 0
+
+        return {
+          id: existing?.id,
+          projectId: p.id,
+          projectName: p.name,
+          value: existing?.value ?? defaultValue,
+        }
+      }),
+    )
+    setHasInitialized(true)
+  }, [existingAllocations, projectList, prefilledProject, hasInitialized])
+
+  // Only count allocations with value > 0
+  const activeAllocations = allocations.filter(a => a.value > 0)
+  const totalUt = activeAllocations.reduce((sum, a) => sum + a.value, 0)
+  const roundedTotal = Math.round(totalUt * 10) / 10
+  const isValid = roundedTotal === 1
+
+  function getMaxValue(projectId: number): number {
+    const otherTotal = allocations
+      .filter(a => a.projectId !== projectId)
+      .reduce((sum, a) => sum + a.value, 0)
+    return Math.round((1 - otherTotal) * 10) / 10
   }
 
-  const removeAllocation = (index: number) => {
-    if (allocations.length > 1) {
-      setAllocations(allocations.filter((_, i) => i !== index))
-    }
+  function updateAllocation(projectId: number, value: number): void {
+    setAllocations(prev => prev.map(a => (a.projectId === projectId ? { ...a, value } : a)))
   }
 
-  const updateAllocation = (index: number, updates: Partial<AllocationItem>) => {
-    setAllocations(allocations.map((a, i) => (i === index ? { ...a, ...updates } : a)))
+  function resetAllocations(): void {
+    setAllocations(prev => prev.map(a => ({ ...a, value: 0 })))
   }
 
-  const handleSubmit = () => {
+  function handleSubmit(): void {
     if (!isValid) {
-      toast.error('请确保总计为 1 UT 且所有项目已选择')
+      toast.error('请确保总计为 1 UT')
       return
     }
 
-    const list = allocations.map(a => ({
+    // Only submit allocations with value > 0
+    const list = activeAllocations.map(a => ({
       date,
-      projectId: a.projectId!,
+      projectId: a.projectId,
       projectName: a.projectName,
       status: UtStatus.Check,
       type: '1',
@@ -115,83 +129,60 @@ export function UtForm({
 
   // Check if status is confirmed (not editable)
   const hasConfirmed = existingAllocations.some(a => a.status === UtStatus.Confirmed)
-  const overallStatus = existingAllocations[0]?.status || UtStatus.None
   const canEdit = editable && !hasConfirmed
+
+  if (projectList.length === 0) {
+    return <div className="py-8 text-center text-muted-foreground">暂无可用项目</div>
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-2">
           <p className="text-sm font-medium">{formattedDate}</p>
-          {existingAllocations.length > 0 && (
-            <UtStatusBadge status={overallStatus} className="mt-1" />
-          )}
         </div>
-        <div
-          className={cn(
-            'text-lg font-bold',
-            totalUt === 1
-              ? 'text-green-600'
-              : totalUt > 1
-                ? 'text-red-600'
-                : 'text-muted-foreground',
-          )}
-        >
-          {totalUt} / 1 UT
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        {allocations.map((allocation, index) => (
-          <div key={index} className="space-y-2 rounded-lg border p-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs text-muted-foreground">项目 {index + 1}</Label>
-              {allocations.length > 1 && canEdit && (
+        <div className="flex items-center gap-3">
+          {canEdit && totalUt > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-6"
-                  onClick={() => removeAllocation(index)}
+                  className="size-7 text-muted-foreground"
+                  onClick={resetAllocations}
                 >
-                  <Trash2 className="size-3" />
+                  <RotateCcw className="size-4" />
                 </Button>
+              </TooltipTrigger>
+              <TooltipContent>重置</TooltipContent>
+            </Tooltip>
+          )}
+          <div className={cn('text-lg font-bold', getTotalColorClass(roundedTotal))}>
+            {roundedTotal} / 1 UT
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {allocations.map(allocation => (
+          <div key={allocation.projectId} className="space-y-2 rounded-lg border p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">{allocation.projectName}</span>
+              {allocation.value > 0 && (
+                <span className="text-sm font-medium text-primary">{allocation.value} UT</span>
               )}
             </div>
 
-            <ProjectSelect
-              projects={projects}
-              value={allocation.projectId ?? undefined}
-              onChange={(projectId, projectName) =>
-                updateAllocation(index, { projectId, projectName })
-              }
+            <UtValueInput
+              value={allocation.value}
+              onChange={value => updateAllocation(allocation.projectId, value)}
               disabled={!canEdit}
+              maxValue={getMaxValue(allocation.projectId)}
             />
-
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">UT 数量</Label>
-              <UtValueInput
-                value={allocation.value}
-                onChange={value => updateAllocation(index, { value })}
-                disabled={!canEdit}
-              />
-            </div>
           </div>
         ))}
       </div>
-
-      {canEdit && totalUt < 1 && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={addAllocation}
-        >
-          <Plus className="mr-1 size-4" />
-          添加项目
-        </Button>
-      )}
 
       {canEdit && (
         <div className="flex gap-2 pt-2">
