@@ -8,7 +8,7 @@ interface UtValueInputProps {
   maxValue: number
 }
 
-const UT_VALUES = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] as const
+const UT_VALUES = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1] as const
 
 export function UtValueInput({ value, onChange, disabled, maxValue }: UtValueInputProps) {
   // Filter out values that exceed maxValue (instead of disabling them)

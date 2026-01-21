@@ -259,8 +259,8 @@ function DroppableDay({
         'min-h-24 cursor-pointer border-b border-r border-gray-200 p-1 transition-colors dark:border-gray-800',
         !isCurrentMonth && 'bg-muted/30',
         weekend && 'bg-muted/20',
-        isOver && 'bg-primary/10 ring-2 ring-inset ring-primary',
-        isSelected && 'ring-2 ring-inset ring-primary',
+        isOver && 'bg-primary/10 ring-1 ring-inset ring-gray-300',
+        isSelected && 'ring-1 ring-inset ring-gray-300',
       )}
       onClick={(e) => onClick(e.currentTarget)}
     >
