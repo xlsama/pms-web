@@ -185,13 +185,9 @@ export function UtForm({
       </div>
 
       {canEdit && (
-        <div className="flex gap-2 pt-2">
-          <Button type="button" variant="outline" className="flex-1" onClick={onClose}>
-            取消
-          </Button>
+        <div className="flex justify-end pt-2">
           <Button
             type="button"
-            className="flex-1"
             onClick={handleSubmit}
             disabled={!isValid || submitUt.isPending}
           >

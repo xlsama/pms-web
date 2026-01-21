@@ -130,27 +130,29 @@ function RouteComponent() {
   }
 
   return (
-    <div className="flex h-full flex-col px-6 py-4">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="flex h-full flex-col px-3 py-3 md:px-6 md:py-4">
+      <div className="mb-3 flex items-center justify-between gap-2 md:mb-4">
+        <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full"
+            className="size-8 shrink-0 rounded-full md:size-9"
             onClick={() => router.history.back()}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="size-4" />
           </Button>
-          <h1 className="text-xl font-medium">UT模板</h1>
+          <h1 className="text-base font-medium whitespace-nowrap md:text-xl">UT模板</h1>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleResetTemplate}>
-            重置模板
+        <div className="flex gap-1.5 md:gap-2">
+          <Button variant="outline" size="sm" className="h-8 px-2 text-xs md:h-9 md:px-4 md:text-sm" onClick={handleResetTemplate}>
+            重置
           </Button>
-          <Button onClick={handleExport}>导出 Markdown</Button>
+          <Button size="sm" className="h-8 px-2 text-xs md:h-9 md:px-4 md:text-sm" onClick={handleExport}>
+            导出
+          </Button>
         </div>
       </div>
-      <div className="prose max-w-none flex-1 overflow-auto rounded-lg border py-4 pr-4 pl-12 prose-neutral dark:prose-invert">
+      <div className="prose max-w-none flex-1 overflow-auto rounded-lg border py-3 pr-3 pl-6 prose-neutral md:py-4 md:pr-4 md:pl-12 dark:prose-invert">
         <YooptaEditor
           editor={editor}
           plugins={plugins}

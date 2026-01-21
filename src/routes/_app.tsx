@@ -50,23 +50,23 @@ function AppLayout() {
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="flex shrink-0 items-center justify-between border-b px-4 py-2">
+          <header className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b bg-sidebar px-4 py-2">
             <div className="flex shrink-0 items-center gap-2">
               <SidebarTrigger />
               <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
               {data && (
-                <div className="flex items-center gap-2">
-                  <Badge className="border-transparent bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                    剩余总人天: {data.totalManDaysRemaining}
+                <div className="flex items-center gap-1.5">
+                  <Badge className="border-transparent bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+                    剩余:<span className="ml-0.5 font-semibold tabular-nums">{data.totalManDaysRemaining}</span>
                   </Badge>
                   {data.checkCount > 0 && (
-                    <Badge className="border-transparent bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300">
-                      待审批: {data.checkCount}
+                    <Badge className="border-transparent bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300">
+                      待审:<span className="ml-0.5 font-semibold tabular-nums">{data.checkCount}</span>
                     </Badge>
                   )}
                   {data.rejectedCount > 0 && (
-                    <Badge className="border-transparent bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300">
-                      已驳回: {data.rejectedCount}
+                    <Badge className="border-transparent bg-red-100 px-2 py-0.5 text-xs text-red-700 dark:bg-red-900/50 dark:text-red-300">
+                      驳回:<span className="ml-0.5 font-semibold tabular-nums">{data.rejectedCount}</span>
                     </Badge>
                   )}
                 </div>

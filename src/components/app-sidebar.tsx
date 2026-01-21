@@ -68,7 +68,7 @@ export function AppSidebar() {
             <SidebarMenuButton className="h-auto">
               <Avatar className="size-8">
                 <AvatarImage src="" />
-                <AvatarFallback className="bg-primary text-white">
+                <AvatarFallback className="bg-primary text-primary-foreground">
                   {user?.name.charAt(0) ?? '?'}
                 </AvatarFallback>
               </Avatar>

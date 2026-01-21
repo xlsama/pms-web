@@ -117,46 +117,57 @@ export function UtWeekView() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigateWeek(-1)}>
-            <ChevronLeft className="size-4" />
-          </Button>
-          <div className="text-center">
-            <div className="text-sm font-medium">
+      {/* Compact Header Card */}
+      <div className="m-3 mb-0 rounded-lg bg-muted/50 p-3">
+        {/* First row: Navigation + Date + Stats */}
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: Navigation + Date */}
+          <div className="flex min-w-0 flex-1 items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0"
+              onClick={() => navigateWeek(-1)}
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <div className="min-w-0 truncate text-sm font-medium">
               {format(weekStart, 'M月d日', { locale: zhCN })} -{' '}
               {format(weekEnd, 'M月d日', { locale: zhCN })}
+              <span className="ml-1 text-xs text-muted-foreground max-[360px]:hidden">
+                · 第{weekNumber}周
+              </span>
             </div>
-            <div className="text-xs text-muted-foreground">第 {weekNumber} 周</div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0"
+              onClick={() => navigateWeek(1)}
+            >
+              <ChevronRight className="size-4" />
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => navigateWeek(1)}>
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-        <Button variant="outline" size="sm" onClick={goToToday}>
-          本周
-        </Button>
-      </div>
 
-      {/* Stats */}
-      {data && (
-        <div className="flex items-center justify-center gap-3 border-b px-4 py-2 text-xs">
-          <span>
-            剩余: <strong>{data.totalManDaysRemaining}</strong>
-          </span>
-          {data.uncommittedCount.length > 0 && (
-            <span className="text-yellow-600">
-              未提交: <strong>{data.uncommittedCount.length}</strong>
-            </span>
-          )}
-          {data.checkCount > 0 && (
-            <span className="text-blue-600">
-              待审: <strong>{data.checkCount}</strong>
-            </span>
-          )}
+          {/* Right: Stats badges + Today button */}
+          <div className="flex shrink-0 items-center gap-1.5">
+            {data && (
+              <>
+                <span className="rounded bg-background px-1.5 py-0.5 text-xs">
+                  剩余:<span className="font-semibold tabular-nums">{data.totalManDaysRemaining}</span>
+                </span>
+                {data.checkCount > 0 && (
+                  <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                    待审:<span className="font-semibold tabular-nums">{data.checkCount}</span>
+                  </span>
+                )}
+              </>
+            )}
+            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={goToToday}>
+              本周
+            </Button>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Day cards */}
       <div className="flex-1 space-y-2 overflow-auto p-4">
