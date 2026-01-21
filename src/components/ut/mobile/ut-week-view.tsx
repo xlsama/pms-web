@@ -153,7 +153,8 @@ export function UtWeekView() {
             {data && (
               <>
                 <span className="rounded bg-background px-1.5 py-0.5 text-xs">
-                  剩余:<span className="font-semibold tabular-nums">{data.totalManDaysRemaining}</span>
+                  剩余:
+                  <span className="font-semibold tabular-nums">{data.totalManDaysRemaining}</span>
                 </span>
                 {data.checkCount > 0 && (
                   <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">

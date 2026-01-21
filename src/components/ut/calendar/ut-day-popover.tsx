@@ -12,7 +12,14 @@ interface UtDayPopoverProps {
   anchorEl: HTMLElement | null
 }
 
-export function UtDayPopover({ open, onOpenChange, date, projects, summary, anchorEl }: UtDayPopoverProps) {
+export function UtDayPopover({
+  open,
+  onOpenChange,
+  date,
+  projects,
+  summary,
+  anchorEl,
+}: UtDayPopoverProps) {
   const { prefilledProject, setPrefilledProject, setSelectedDate } = useUtStore()
 
   const handleClose = () => {
@@ -25,10 +32,10 @@ export function UtDayPopover({ open, onOpenChange, date, projects, summary, anch
     <Popover open={open} onOpenChange={onOpenChange}>
       {anchorEl && <PopoverAnchor virtualRef={{ current: anchorEl }} />}
       <PopoverContent
-          className="w-[calc(100vw-2rem)] max-w-md lg:max-w-lg p-6"
-          align="start"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
+        className="w-[calc(100vw-2rem)] max-w-md p-6 lg:max-w-lg"
+        align="start"
+        onOpenAutoFocus={e => e.preventDefault()}
+      >
         <div className="mb-4">
           <h2 className="text-lg font-semibold">填写 UT</h2>
         </div>

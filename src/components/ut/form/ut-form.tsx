@@ -186,11 +186,7 @@ export function UtForm({
 
       {canEdit && (
         <div className="flex justify-end pt-2">
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!isValid || submitUt.isPending}
-          >
+          <Button type="button" onClick={handleSubmit} disabled={!isValid || submitUt.isPending}>
             {submitUt.isPending ? '提交中...' : '提交'}
           </Button>
         </div>

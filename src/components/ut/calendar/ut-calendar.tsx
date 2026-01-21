@@ -25,8 +25,19 @@ import { cn } from '@/lib/utils'
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日']
 
 export function UtCalendar() {
-  const { currentDate, setCurrentDate, setSidebarMonth, selectedDate, setSelectedDate, setPrefilledProject, setProjects, formOpen, setFormOpen, flashDate, setFlashDate } =
-    useUtStore()
+  const {
+    currentDate,
+    setCurrentDate,
+    setSidebarMonth,
+    selectedDate,
+    setSelectedDate,
+    setPrefilledProject,
+    setProjects,
+    formOpen,
+    setFormOpen,
+    flashDate,
+    setFlashDate,
+  } = useUtStore()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
 
   // Sync formOpen from drag-drop to local popover state
@@ -210,7 +221,7 @@ export function UtCalendar() {
               isToday={isToday(day)}
               isWeekend={isWeekend(day)}
               summary={summary}
-              onClick={(el) => handleDayClick(dateStr, el)}
+              onClick={el => handleDayClick(dateStr, el)}
               isSelected={selectedDate === dateStr}
               isFlashing={flashDate === dateStr}
               onFlashEnd={handleFlashEnd}
@@ -286,7 +297,7 @@ function DroppableDay({
         isSelected && 'ring-1 ring-inset ring-gray-300',
         isFlashing && 'animate-flash',
       )}
-      onClick={(e) => onClick(e.currentTarget)}
+      onClick={e => onClick(e.currentTarget)}
     >
       <UtDayCell date={date} isCurrentMonth={isCurrentMonth} isToday={today} summary={summary} />
     </div>

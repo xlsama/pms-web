@@ -57,16 +57,23 @@ function AppLayout() {
               {data && (
                 <div className="flex items-center gap-1.5">
                   <Badge className="border-transparent bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                    剩余:<span className="ml-0.5 font-semibold tabular-nums">{data.totalManDaysRemaining}</span>
+                    剩余:
+                    <span className="ml-0.5 font-semibold tabular-nums">
+                      {data.totalManDaysRemaining}
+                    </span>
                   </Badge>
                   {data.checkCount > 0 && (
                     <Badge className="border-transparent bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300">
-                      待审:<span className="ml-0.5 font-semibold tabular-nums">{data.checkCount}</span>
+                      待审:
+                      <span className="ml-0.5 font-semibold tabular-nums">{data.checkCount}</span>
                     </Badge>
                   )}
                   {data.rejectedCount > 0 && (
                     <Badge className="border-transparent bg-red-100 px-2 py-0.5 text-xs text-red-700 dark:bg-red-900/50 dark:text-red-300">
-                      驳回:<span className="ml-0.5 font-semibold tabular-nums">{data.rejectedCount}</span>
+                      驳回:
+                      <span className="ml-0.5 font-semibold tabular-nums">
+                        {data.rejectedCount}
+                      </span>
                     </Badge>
                   )}
                 </div>
@@ -103,12 +110,8 @@ function AppLayout() {
                       <span className="ml-2">主题</span>
                     </DropdownMenuSubTrigger>
                     <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => setTheme('light')}>
-                        浅色
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setTheme('dark')}>
-                        深色
-                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme('light')}>浅色</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme('dark')}>深色</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setTheme('system')}>
                         跟随系统
                       </DropdownMenuItem>

@@ -11,8 +11,8 @@ export function SidebarProjects() {
   // Transform UtItem list to Project[]
   const projects: Array<Project> =
     data?.list
-      ?.filter(item => item.projectId && !item.hasChildren)
-      ?.reduce((acc, item) => {
+      .filter(item => item.projectId && !item.hasChildren)
+      .reduce((acc, item) => {
         const existing = acc.find(p => p.id === item.projectId)
         if (!existing) {
           acc.push({

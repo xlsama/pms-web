@@ -31,7 +31,7 @@ const statusConfig = {
 }
 
 export function UtStatusBadge({ status, className }: UtStatusBadgeProps) {
-  const config = statusConfig[status] || statusConfig[UtStatus.None]
+  const config = statusConfig[status]
 
   return (
     <Badge variant={config.variant} className={cn(config.className, className)}>

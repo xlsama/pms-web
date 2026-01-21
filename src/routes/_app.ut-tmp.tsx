@@ -144,10 +144,19 @@ function RouteComponent() {
           <h1 className="text-base font-medium whitespace-nowrap md:text-xl">UT模板</h1>
         </div>
         <div className="flex gap-1.5 md:gap-2">
-          <Button variant="outline" size="sm" className="h-8 px-2 text-xs md:h-9 md:px-4 md:text-sm" onClick={handleResetTemplate}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 px-2 text-xs md:h-9 md:px-4 md:text-sm"
+            onClick={handleResetTemplate}
+          >
             重置
           </Button>
-          <Button size="sm" className="h-8 px-2 text-xs md:h-9 md:px-4 md:text-sm" onClick={handleExport}>
+          <Button
+            size="sm"
+            className="h-8 px-2 text-xs md:h-9 md:px-4 md:text-sm"
+            onClick={handleExport}
+          >
             导出
           </Button>
         </div>
