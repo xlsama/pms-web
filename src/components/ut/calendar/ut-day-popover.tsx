@@ -22,7 +22,7 @@ export function UtDayPopover({
 }: UtDayPopoverProps) {
   const { prefilledProject, setPrefilledProject, setSelectedDate } = useUtStore()
 
-  const handleClose = () => {
+  function handleClose(): void {
     onOpenChange(false)
     setPrefilledProject(null)
     setSelectedDate(null)

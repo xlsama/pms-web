@@ -1,5 +1,5 @@
 import type { DailyUtSummary } from '@/types/ut'
-import { UtStatus } from '@/types/ut'
+import { getStatusColorClass } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
 
 // 农历假数据（后续可替换为 chinese-days 库）
@@ -78,16 +78,7 @@ export function UtDayCell({ date, isCurrentMonth, isToday, summary }: UtDayCellP
           {summary.allocations.slice(0, 2).map((allocation, i) => (
             <div
               key={i}
-              className={cn(
-                'truncate rounded px-1 py-0.5 text-xs',
-                allocation.status === UtStatus.Confirmed &&
-                  'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200',
-                allocation.status === UtStatus.Check &&
-                  'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200',
-                allocation.status === UtStatus.Rejected &&
-                  'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200',
-                allocation.status === UtStatus.None && 'bg-muted text-muted-foreground',
-              )}
+              className={cn('truncate rounded px-1 py-0.5 text-xs', getStatusColorClass(allocation.status))}
             >
               {allocation.projectName} ({allocation.value})
             </div>

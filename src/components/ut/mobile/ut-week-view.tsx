@@ -14,11 +14,10 @@ import { zhCN } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { UtDayCard } from './ut-day-card'
 import { UtDayDrawer } from './ut-day-drawer'
-import type { DailyUtSummary, Project, UtAllocation } from '@/types/ut'
 import { Button } from '@/components/ui/button'
 import { useMonthlyUt } from '@/hooks/use-ut'
+import { buildDailySummaries, extractProjects } from '@/lib/ut-utils'
 import { useUtStore } from '@/stores/ut'
-import { UtStatus } from '@/types/ut'
 
 export function UtWeekView() {
   const { currentDate, setCurrentDate, selectedDate, setSelectedDate } = useUtStore()
@@ -31,86 +30,27 @@ export function UtWeekView() {
 
   const { data } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
 
-  // Navigate weeks
-  const navigateWeek = (delta: number) => {
+  function navigateWeek(delta: number): void {
     const newDate = delta > 0 ? addWeeks(currentDate, 1) : subWeeks(currentDate, 1)
     setCurrentDate(newDate)
   }
 
-  const goToToday = () => {
+  function goToToday(): void {
     setCurrentDate(new Date())
   }
 
   // Build daily summaries map
-  const dailySummaries = useMemo(() => {
-    const map = new Map<string, DailyUtSummary>()
-
-    if (data?.list) {
-      const byDate = new Map<string, Array<UtAllocation>>()
-
-      for (const item of data.list) {
-        if (item.date) {
-          const existing = byDate.get(item.date) || []
-          existing.push({
-            id: item.id,
-            date: item.date,
-            projectId: item.projectId,
-            projectName: item.projectName,
-            value: item.val,
-            status: item.status,
-          })
-          byDate.set(item.date, existing)
-        }
-      }
-
-      for (const [date, allocations] of byDate) {
-        const totalUt = allocations.reduce((sum, a) => sum + a.value, 0)
-        const status = allocations[0]?.status || UtStatus.None
-        const editable = status !== UtStatus.Confirmed
-
-        map.set(date, {
-          date,
-          isWorkday: !isWeekend(new Date(date)),
-          allocations,
-          totalUt,
-          status,
-          editable,
-        })
-      }
-    }
-
-    return map
-  }, [data])
+  const dailySummaries = useMemo(() => buildDailySummaries(data?.list), [data])
 
   // Extract projects
-  const projects: Array<Project> = useMemo(() => {
-    if (!data?.list) return []
+  const projects = useMemo(() => extractProjects(data?.list), [data])
 
-    const projectMap = new Map<number, Project>()
-
-    for (const item of data.list) {
-      if (item.projectId && !projectMap.has(item.projectId)) {
-        projectMap.set(item.projectId, {
-          id: item.projectId,
-          name: item.projectName,
-          code: item.projectCode || '',
-          manDaysRemaining: item.manDaysRemaining,
-          manDaysUsed: item.manDaysUsed,
-          totalManDays: item.totalManDays,
-        })
-      }
-    }
-
-    return Array.from(projectMap.values())
-  }, [data])
-
-  // Handle day click
-  const handleDayClick = (date: string) => {
+  function handleDayClick(date: string): void {
     setSelectedDate(date)
     setDrawerOpen(true)
   }
 
-  const handleDrawerClose = () => {
+  function handleDrawerClose(): void {
     setDrawerOpen(false)
     setSelectedDate(null)
   }

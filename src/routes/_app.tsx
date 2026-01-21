@@ -1,16 +1,9 @@
 import { Link, Outlet, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { Menu, Moon, Sun } from 'lucide-react'
 import type { Project } from '@/types/ut'
-import { useAuthStore } from '@/stores/auth'
-import { useUtStore } from '@/stores/ut'
-import { useMonthlyUt } from '@/hooks/use-ut'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
-import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { ModeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
-import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +14,14 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Separator } from '@/components/ui/separator'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
+import { ModeToggle } from '@/components/theme-toggle'
 import { useTheme } from '@/contexts/theme-provider'
+import { useMonthlyUt } from '@/hooks/use-ut'
+import { useAuthStore } from '@/stores/auth'
+import { useUtStore } from '@/stores/ut'
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: () => {
@@ -39,7 +39,7 @@ function AppLayout() {
   const { setTheme } = useTheme()
   const navigate = useNavigate()
 
-  const handleDrop = (project: Project, date: string) => {
+  function handleDrop(project: Project, date: string): void {
     setSelectedDate(date)
     setPrefilledProject(project)
     setFormOpen(true)

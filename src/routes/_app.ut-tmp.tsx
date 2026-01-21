@@ -108,21 +108,19 @@ function RouteComponent() {
     setValue(defaultValue)
   }, [editor])
 
-  const handleChange = (newValue: YooptaContentValue) => {
+  function handleChange(newValue: YooptaContentValue): void {
     setValue(newValue)
     debouncedSave(newValue)
   }
 
-  // Export to Markdown
-  const handleExport = () => {
+  function handleExport(): void {
     const data = editor.getEditorValue()
     const md = markdown.serialize(editor, data)
     navigator.clipboard.writeText(md)
     toast.success('已复制到剪贴板')
   }
 
-  // Reset to template
-  const handleResetTemplate = () => {
+  function handleResetTemplate(): void {
     const defaultValue = markdown.deserialize(editor, DEFAULT_TEMPLATE)
     editor.setEditorValue(defaultValue)
     setValue(defaultValue)
