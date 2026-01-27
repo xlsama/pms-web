@@ -69,7 +69,7 @@ export function AppSidebar() {
               <Avatar className="size-8">
                 <AvatarImage src="" />
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  {user?.name.charAt(0) ?? '?'}
+                  {user?.name?.charAt(0) ?? '?'}
                 </AvatarFallback>
               </Avatar>
               <span className="text-sm font-semibold">{user?.name ?? '未登录'}</span>

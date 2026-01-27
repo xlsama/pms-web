@@ -78,7 +78,10 @@ export function UtDayCell({ date, isCurrentMonth, isToday, summary }: UtDayCellP
           {summary.allocations.slice(0, 2).map((allocation, i) => (
             <div
               key={i}
-              className={cn('truncate rounded px-1 py-0.5 text-xs', getStatusColorClass(allocation.status))}
+              className={cn(
+                'truncate rounded px-1 py-0.5 text-xs',
+                getStatusColorClass(allocation.status),
+              )}
             >
               {allocation.projectName} ({allocation.value})
             </div>

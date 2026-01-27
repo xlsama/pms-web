@@ -4,7 +4,6 @@ import {
   eachDayOfInterval,
   endOfWeek,
   format,
-  getWeek,
   isToday,
   isWeekend,
   startOfWeek,
@@ -12,8 +11,10 @@ import {
 } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { motion } from 'motion/react'
 import { UtDayCard } from './ut-day-card'
 import { UtDayDrawer } from './ut-day-drawer'
+import type { PanInfo } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { useMonthlyUt } from '@/hooks/use-ut'
 import { buildDailySummaries, extractProjects } from '@/lib/ut-utils'
@@ -26,7 +27,6 @@ export function UtWeekView() {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 })
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd })
-  const weekNumber = getWeek(currentDate, { weekStartsOn: 1 })
 
   const { data } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
 
@@ -37,6 +37,17 @@ export function UtWeekView() {
 
   function goToToday(): void {
     setCurrentDate(new Date())
+  }
+
+  function handleDragEnd(_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo): void {
+    const threshold = 50
+    const velocity = 500
+
+    if (info.offset.x > threshold || info.velocity.x > velocity) {
+      navigateWeek(-1)
+    } else if (info.offset.x < -threshold || info.velocity.x < -velocity) {
+      navigateWeek(1)
+    }
   }
 
   // Build daily summaries map
@@ -74,9 +85,6 @@ export function UtWeekView() {
             <div className="min-w-0 truncate text-sm font-medium">
               {format(weekStart, 'M月d日', { locale: zhCN })} -{' '}
               {format(weekEnd, 'M月d日', { locale: zhCN })}
-              <span className="ml-1 text-xs text-muted-foreground max-[360px]:hidden">
-                · 第{weekNumber}周
-              </span>
             </div>
             <Button
               variant="ghost"
@@ -88,30 +96,26 @@ export function UtWeekView() {
             </Button>
           </div>
 
-          {/* Right: Stats badges + Today button */}
-          <div className="flex shrink-0 items-center gap-1.5">
-            {data && (
-              <>
-                <span className="rounded bg-background px-1.5 py-0.5 text-xs">
-                  剩余:
-                  <span className="font-semibold tabular-nums">{data.totalManDaysRemaining}</span>
-                </span>
-                {data.checkCount > 0 && (
-                  <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                    待审:<span className="font-semibold tabular-nums">{data.checkCount}</span>
-                  </span>
-                )}
-              </>
-            )}
-            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={goToToday}>
-              本周
-            </Button>
-          </div>
+          {/* Right: Today button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 shrink-0 px-3 text-sm"
+            onClick={goToToday}
+          >
+            本周
+          </Button>
         </div>
       </div>
 
       {/* Day cards */}
-      <div className="flex-1 space-y-2 overflow-auto p-4">
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragEnd={handleDragEnd}
+        className="flex-1 space-y-2 overflow-auto p-4"
+      >
         {weekDays.map(day => {
           const dateStr = format(day, 'yyyy-MM-dd')
           const summary = dailySummaries.get(dateStr)
@@ -127,7 +131,7 @@ export function UtWeekView() {
             />
           )
         })}
-      </div>
+      </motion.div>
 
       {/* Drawer */}
       {selectedDate && (
