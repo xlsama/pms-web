@@ -29,7 +29,7 @@ export const request = ofetch.create({
       handleError(data.message || '接口错误，请稍后重试')
     }
 
-    if (options.skip) {
+    if (options.raw) {
       return
     }
 
@@ -63,6 +63,6 @@ function handleError(msg: string, cause?: unknown): never {
 
 declare module 'ofetch' {
   interface FetchOptions {
-    skip?: boolean
+    raw?: boolean
   }
 }
