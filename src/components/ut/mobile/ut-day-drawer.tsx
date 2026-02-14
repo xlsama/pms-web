@@ -1,5 +1,5 @@
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
-import type { DailyUtSummary, Project } from '@/types/ut'
+import type { DailyData, Project } from '@/types/ut'
 
 import { UtForm } from '../form/ut-form'
 
@@ -8,10 +8,10 @@ interface UtDayDrawerProps {
   onOpenChange: (open: boolean) => void
   date: string
   projects: Array<Project>
-  summary?: DailyUtSummary
+  dailyData?: DailyData
 }
 
-export function UtDayDrawer({ open, onOpenChange, date, projects, summary }: UtDayDrawerProps) {
+export function UtDayDrawer({ open, onOpenChange, date, projects, dailyData }: UtDayDrawerProps) {
   const handleClose = () => {
     onOpenChange(false)
   }
@@ -26,9 +26,9 @@ export function UtDayDrawer({ open, onOpenChange, date, projects, summary }: UtD
           <UtForm
             date={date}
             projects={projects}
-            existingAllocations={summary?.allocations}
+            existingAllocations={dailyData?.records}
             onClose={handleClose}
-            editable={summary?.editable ?? true}
+            editable={dailyData?.editable ?? true}
           />
         </div>
       </DrawerContent>

@@ -1,6 +1,6 @@
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { useUtStore } from '@/stores/ut'
-import type { DailyUtSummary, Project } from '@/types/ut'
+import type { DailyData, Project } from '@/types/ut'
 
 import { UtForm } from '../form/ut-form'
 
@@ -9,7 +9,7 @@ interface UtDayPopoverProps {
   onOpenChange: (open: boolean) => void
   date: string
   projects: Array<Project>
-  summary?: DailyUtSummary
+  dailyData?: DailyData
   anchorEl: HTMLElement | null
 }
 
@@ -18,7 +18,7 @@ export function UtDayPopover({
   onOpenChange,
   date,
   projects,
-  summary,
+  dailyData,
   anchorEl,
 }: UtDayPopoverProps) {
   const { prefilledProject, setPrefilledProject, setSelectedDate } = useUtStore()
@@ -43,10 +43,10 @@ export function UtDayPopover({
         <UtForm
           date={date}
           projects={projects}
-          existingAllocations={summary?.allocations}
+          existingAllocations={dailyData?.records}
           prefilledProject={prefilledProject}
           onClose={handleClose}
-          editable={summary?.editable ?? true}
+          editable={dailyData?.editable ?? true}
         />
       </PopoverContent>
     </Popover>

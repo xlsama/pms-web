@@ -1,9 +1,21 @@
 import { request } from '@/lib/request'
 
-export const getConsume = (req: { date?: string }) => {
-  return request<ConsumeRes>('/api/user/consume', {
-    params: req,
+function normalizeDateField(item: UtItem): UtItem {
+  let dateStr: string | null = null
+  if (Array.isArray(item.date)) {
+    const [year, month, day] = item.date as unknown as [number, number, number]
+    dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  } else if (typeof item.date === 'string') {
+    dateStr = item.date
+  }
+  return { ...item, date: dateStr }
+}
+
+export const getConsume = async (req: { date: string }): Promise<ConsumeRes> => {
+  const res = await request<ConsumeRes>('/api/user/consume', {
+    params: { date: req.date, loadHistory: true },
   })
+  return { ...res, list: res.list.map(normalizeDateField) }
 }
 
 export const updateConsume = (req: UpdateConsumeReq) => {
@@ -15,36 +27,6 @@ export const updateConsume = (req: UpdateConsumeReq) => {
 
 export const getRejectUt = () => {
   return request<Array<UtItem>>('/api/user/reject')
-}
-
-// Get monthly UT data
-export const getMonthlyUt = (req: { year: number; month: number }) => {
-  // Use first day of month as date parameter
-  const date = `${req.year}-${String(req.month).padStart(2, '0')}-01`
-  return request<ConsumeRes>('/api/user/consume', {
-    params: { date },
-  })
-}
-
-// Get weekly UT data
-export const getWeeklyUt = (req: { weekIndex: number }) => {
-  return request<ConsumeRes>('/api/user/consume', {
-    params: { weekIndex: req.weekIndex },
-  })
-}
-
-// Get user projects
-export const getUserProjects = () => {
-  return request<Array<ProjectListItem>>('/api/user/projects')
-}
-
-export interface ProjectListItem {
-  id: number
-  name: string
-  code: string
-  manDaysRemaining: number
-  manDaysUsed: number
-  totalManDays: number
 }
 
 export interface UpdateConsumeReq {

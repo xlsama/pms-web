@@ -1,14 +1,20 @@
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { RotateCcw } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useSubmitUt } from '@/hooks/use-ut'
+import { isLeaveProject } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
-import { useUtStore } from '@/stores/ut'
 import type { Project, UtAllocation } from '@/types/ut'
 import { UtStatus } from '@/types/ut'
 
@@ -36,6 +42,36 @@ interface AllocationItem {
   value: number
 }
 
+function AllocationCard({
+  allocation,
+  disabled,
+  maxValue,
+  onChange,
+}: {
+  allocation: AllocationItem
+  disabled: boolean
+  maxValue: number
+  onChange: (value: number) => void
+}) {
+  return (
+    <div className="space-y-2 rounded-lg border p-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">{allocation.projectName}</span>
+        {allocation.value > 0 && (
+          <span className="text-sm font-medium text-primary">{allocation.value} UT</span>
+        )}
+      </div>
+
+      <UtValueInput
+        value={allocation.value}
+        onChange={onChange}
+        disabled={disabled}
+        maxValue={maxValue}
+      />
+    </div>
+  )
+}
+
 export function UtForm({
   date,
   projects,
@@ -46,20 +82,17 @@ export function UtForm({
 }: UtFormProps) {
   const [allocations, setAllocations] = useState<Array<AllocationItem>>([])
   const [hasInitialized, setHasInitialized] = useState(false)
+  const [leaveAccordion, setLeaveAccordion] = useState<string>('')
   const submitUt = useSubmitUt()
-
-  // Get projects from store as fallback
-  const storeProjects = useUtStore(s => s.projects)
-  const projectList = projects.length > 0 ? projects : storeProjects
 
   // Initialize allocations from existing or create default for all projects
   useEffect(() => {
-    if (projectList.length === 0 || hasInitialized) return
+    if (projects.length === 0 || hasInitialized) return
 
     const existingMap = new Map(existingAllocations.map(a => [a.projectId, a]))
 
     setAllocations(
-      projectList.map(p => {
+      projects.map(p => {
         const existing = existingMap.get(p.id)
         const isPrefilled = prefilledProject?.id === p.id
         const defaultValue = isPrefilled && !existing ? 1 : 0
@@ -73,7 +106,27 @@ export function UtForm({
       }),
     )
     setHasInitialized(true)
-  }, [existingAllocations, projectList, prefilledProject, hasInitialized])
+  }, [existingAllocations, projects, prefilledProject, hasInitialized])
+
+  const { regularAllocations, leaveAllocations } = useMemo(() => {
+    const regular: Array<AllocationItem> = []
+    const leave: Array<AllocationItem> = []
+    for (const a of allocations) {
+      if (isLeaveProject(a.projectName)) {
+        leave.push(a)
+      } else {
+        regular.push(a)
+      }
+    }
+    return { regularAllocations: regular, leaveAllocations: leave }
+  }, [allocations])
+
+  // Auto-expand leave accordion when leave allocations have values
+  useEffect(() => {
+    if (leaveAllocations.some(a => a.value > 0)) {
+      setLeaveAccordion('leave')
+    }
+  }, [hasInitialized]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Only count allocations with value > 0
   const activeAllocations = allocations.filter(a => a.value > 0)
@@ -133,7 +186,7 @@ export function UtForm({
   const hasConfirmed = existingAllocations.some(a => a.status === UtStatus.Confirmed)
   const canEdit = editable && !hasConfirmed
 
-  if (projectList.length === 0) {
+  if (projects.length === 0) {
     return <div className="py-8 text-center text-muted-foreground">暂无可用项目</div>
   }
 
@@ -167,23 +220,43 @@ export function UtForm({
       </div>
 
       <div className="space-y-3">
-        {allocations.map(allocation => (
-          <div key={allocation.projectId} className="space-y-2 rounded-lg border p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">{allocation.projectName}</span>
-              {allocation.value > 0 && (
-                <span className="text-sm font-medium text-primary">{allocation.value} UT</span>
-              )}
-            </div>
-
-            <UtValueInput
-              value={allocation.value}
-              onChange={value => updateAllocation(allocation.projectId, value)}
-              disabled={!canEdit}
-              maxValue={getMaxValue(allocation.projectId)}
-            />
-          </div>
+        {regularAllocations.map(allocation => (
+          <AllocationCard
+            key={allocation.projectId}
+            allocation={allocation}
+            disabled={!canEdit}
+            maxValue={getMaxValue(allocation.projectId)}
+            onChange={value => updateAllocation(allocation.projectId, value)}
+          />
         ))}
+
+        {leaveAllocations.length > 0 && (
+          <Accordion
+            type="single"
+            collapsible
+            value={leaveAccordion}
+            onValueChange={setLeaveAccordion}
+          >
+            <AccordionItem value="leave" className="border-none">
+              <AccordionTrigger className="py-2 text-xs text-muted-foreground hover:no-underline">
+                请假项目
+              </AccordionTrigger>
+              <AccordionContent className="pb-0">
+                <div className="space-y-3">
+                  {leaveAllocations.map(allocation => (
+                    <AllocationCard
+                      key={allocation.projectId}
+                      allocation={allocation}
+                      disabled={!canEdit}
+                      maxValue={getMaxValue(allocation.projectId)}
+                      onChange={value => updateAllocation(allocation.projectId, value)}
+                    />
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
       </div>
 
       {canEdit && (

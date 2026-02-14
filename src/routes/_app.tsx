@@ -19,7 +19,7 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
 import { useTheme } from '@/contexts/theme-provider'
-import { useMonthlyUt } from '@/hooks/use-ut'
+import { useMonthCalendarData } from '@/hooks/use-ut'
 import { useAuthStore } from '@/stores/auth'
 import { useUtStore } from '@/stores/ut'
 import type { Project } from '@/types/ut'
@@ -36,7 +36,7 @@ export const Route = createFileRoute('/_app')({
 
 function AppLayout() {
   const { currentDate, setSelectedDate, setPrefilledProject, setFormOpen } = useUtStore()
-  const { data } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
+  const { stats, isPending } = useMonthCalendarData(currentDate)
   const { setTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -55,25 +55,25 @@ function AppLayout() {
             <div className="flex shrink-0 items-center gap-2">
               <SidebarTrigger />
               <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-              {data && (
+              {!isPending && (
                 <div className="flex items-center gap-1.5">
                   <Badge className="border-transparent bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
                     剩余:
                     <span className="ml-0.5 font-semibold tabular-nums">
-                      {data.totalManDaysRemaining}
+                      {stats.totalManDaysRemaining}
                     </span>
                   </Badge>
-                  {data.checkCount > 0 && (
+                  {stats.checkCount > 0 && (
                     <Badge className="border-transparent bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300">
                       待审:
-                      <span className="ml-0.5 font-semibold tabular-nums">{data.checkCount}</span>
+                      <span className="ml-0.5 font-semibold tabular-nums">{stats.checkCount}</span>
                     </Badge>
                   )}
-                  {data.rejectedCount > 0 && (
+                  {stats.rejectedCount > 0 && (
                     <Badge className="border-transparent bg-red-100 px-2 py-0.5 text-xs text-red-700 dark:bg-red-900/50 dark:text-red-300">
                       驳回:
                       <span className="ml-0.5 font-semibold tabular-nums">
-                        {data.rejectedCount}
+                        {stats.rejectedCount}
                       </span>
                     </Badge>
                   )}

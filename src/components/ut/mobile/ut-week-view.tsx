@@ -12,11 +12,10 @@ import { zhCN } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion } from 'motion/react'
 import type { PanInfo } from 'motion/react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { useMonthlyUt } from '@/hooks/use-ut'
-import { buildDailySummaries, extractProjects } from '@/lib/ut-utils'
+import { useMonthCalendarData } from '@/hooks/use-ut'
 import { useUtStore } from '@/stores/ut'
 
 import { UtDayCard } from './ut-day-card'
@@ -30,7 +29,7 @@ export function UtWeekView() {
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 })
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd })
 
-  const { data } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
+  const { dailyMap, projects } = useMonthCalendarData(currentDate)
 
   function navigateWeek(delta: number): void {
     const newDate = delta > 0 ? addWeeks(currentDate, 1) : subWeeks(currentDate, 1)
@@ -51,12 +50,6 @@ export function UtWeekView() {
       navigateWeek(1)
     }
   }
-
-  // Build daily summaries map
-  const dailySummaries = useMemo(() => buildDailySummaries(data?.list), [data])
-
-  // Extract projects
-  const projects = useMemo(() => extractProjects(data?.list), [data])
 
   function handleDayClick(date: string): void {
     setSelectedDate(date)
@@ -120,7 +113,7 @@ export function UtWeekView() {
       >
         {weekDays.map(day => {
           const dateStr = format(day, 'yyyy-MM-dd')
-          const summary = dailySummaries.get(dateStr)
+          const dailyData = dailyMap.get(dateStr)
 
           return (
             <UtDayCard
@@ -128,7 +121,7 @@ export function UtWeekView() {
               date={dateStr}
               isToday={isToday(day)}
               isWeekend={isWeekend(day)}
-              summary={summary}
+              dailyData={dailyData}
               onClick={() => handleDayClick(dateStr)}
             />
           )
@@ -142,7 +135,7 @@ export function UtWeekView() {
           onOpenChange={open => !open && handleDrawerClose()}
           date={selectedDate}
           projects={projects}
-          summary={dailySummaries.get(selectedDate)}
+          dailyData={dailyMap.get(selectedDate)}
         />
       )}
     </div>

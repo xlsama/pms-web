@@ -5,7 +5,7 @@ export function login(req: LoginReq) {
   return request<LoginRes>('/api/login', {
     method: 'post',
     body: req,
-    skip: true,
+    raw: true,
   })
 }
 

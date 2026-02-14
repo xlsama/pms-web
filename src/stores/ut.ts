@@ -3,13 +3,9 @@ import { create } from 'zustand'
 import type { Project } from '@/types/ut'
 
 interface UtState {
-  // Current view date (controls big calendar)
+  // Current view date (controls big calendar and sidebar calendar)
   currentDate: Date
   setCurrentDate: (date: Date) => void
-
-  // Sidebar calendar month (independent display)
-  sidebarMonth: Date
-  setSidebarMonth: (date: Date) => void
 
   // Selected date for form
   selectedDate: string | null
@@ -27,10 +23,6 @@ interface UtState {
   prefilledProject: Project | null
   setPrefilledProject: (project: Project | null) => void
 
-  // All available projects
-  projects: Array<Project>
-  setProjects: (projects: Array<Project>) => void
-
   // Flash date for visual feedback
   flashDate: string | null
   setFlashDate: (date: string | null) => void
@@ -39,9 +31,6 @@ interface UtState {
 export const useUtStore = create<UtState>()(set => ({
   currentDate: new Date(),
   setCurrentDate: date => set({ currentDate: date }),
-
-  sidebarMonth: new Date(),
-  setSidebarMonth: date => set({ sidebarMonth: date }),
 
   selectedDate: null,
   setSelectedDate: selectedDate => set({ selectedDate }),
@@ -54,9 +43,6 @@ export const useUtStore = create<UtState>()(set => ({
 
   prefilledProject: null,
   setPrefilledProject: prefilledProject => set({ prefilledProject }),
-
-  projects: [],
-  setProjects: projects => set({ projects }),
 
   flashDate: null,
   setFlashDate: flashDate => set({ flashDate }),

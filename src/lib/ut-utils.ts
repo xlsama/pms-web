@@ -1,75 +1,8 @@
+import { isWorkday as isChineseWorkday } from 'chinese-days'
 import { isWeekend } from 'date-fns'
 
-import type { DailyUtSummary, Project, UtAllocation, UtItem } from '@/types/ut'
 import { UtStatus } from '@/types/ut'
-
-/**
- * Build daily summaries map from UT list data
- */
-export function buildDailySummaries(list: Array<UtItem> | undefined): Map<string, DailyUtSummary> {
-  const map = new Map<string, DailyUtSummary>()
-
-  if (!list) return map
-
-  // Group by date
-  const byDate = new Map<string, Array<UtAllocation>>()
-
-  for (const item of list) {
-    if (item.date) {
-      const existing = byDate.get(item.date) || []
-      existing.push({
-        id: item.id,
-        date: item.date,
-        projectId: item.projectId,
-        projectName: item.projectName,
-        value: item.val,
-        status: item.status,
-      })
-      byDate.set(item.date, existing)
-    }
-  }
-
-  for (const [date, allocations] of byDate) {
-    const totalUt = allocations.reduce((sum, a) => sum + a.value, 0)
-    const status = allocations[0]?.status || UtStatus.None
-    const editable = status !== UtStatus.Confirmed
-
-    map.set(date, {
-      date,
-      isWorkday: !isWeekend(new Date(date)),
-      allocations,
-      totalUt,
-      status,
-      editable,
-    })
-  }
-
-  return map
-}
-
-/**
- * Extract unique projects from UT list data
- */
-export function extractProjects(list: Array<UtItem> | undefined): Array<Project> {
-  if (!list) return []
-
-  const projectMap = new Map<number, Project>()
-
-  for (const item of list) {
-    if (item.projectId && !projectMap.has(item.projectId)) {
-      projectMap.set(item.projectId, {
-        id: item.projectId,
-        name: item.projectName,
-        code: item.projectCode || '',
-        manDaysRemaining: item.manDaysRemaining,
-        manDaysUsed: item.manDaysUsed,
-        totalManDays: item.totalManDays,
-      })
-    }
-  }
-
-  return Array.from(projectMap.values())
-}
+import type { DayStatus } from '@/types/ut'
 
 /**
  * Get status color class for UT allocation badge
@@ -84,5 +17,47 @@ export function getStatusColorClass(status: UtStatus): string {
       return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200'
     default:
       return 'bg-muted text-muted-foreground'
+  }
+}
+
+/**
+ * Check if a project is a leave project (无薪假 or 带薪假)
+ */
+export function isLeaveProject(name: string): boolean {
+  return name.startsWith('【无薪假】') || name.startsWith('【带薪假】')
+}
+
+/** 判断是否为工作日（含调休） */
+export function isWorkday(date: string): boolean {
+  return isChineseWorkday(date)
+}
+
+/** 调休类型：'work' = 周末上班, 'rest' = 工作日放假, null = 正常日 */
+export function getAdjustmentType(date: string): 'work' | 'rest' | null {
+  const workday = isChineseWorkday(date)
+  const weekend = isWeekend(new Date(date))
+  if (workday && weekend) return 'work'
+  if (!workday && !weekend) return 'rest'
+  return null
+}
+
+/**
+ * Get background color class for calendar cell based on DayStatus
+ */
+export function getDayStatusColorClass(status: DayStatus): string {
+  switch (status) {
+    case 'confirmed':
+      return 'bg-green-50 dark:bg-green-950/30'
+    case 'complete':
+      return 'bg-blue-50 dark:bg-blue-950/30'
+    case 'check':
+      return 'bg-yellow-50 dark:bg-yellow-950/30'
+    case 'rejected':
+      return 'bg-red-50 dark:bg-red-950/30'
+    case 'partial':
+      return 'bg-orange-50 dark:bg-orange-950/30'
+    case 'empty':
+    default:
+      return ''
   }
 }

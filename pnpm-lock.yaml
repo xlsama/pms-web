@@ -173,6 +173,9 @@ importers:
       ahooks:
         specifier: ^3.9.6
         version: 3.9.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      chinese-days:
+        specifier: ^1.5.4
+        version: 1.5.4
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2703,6 +2706,9 @@ packages:
   chalk@5.6.2:
     resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+
+  chinese-days@1.5.4:
+    resolution: {integrity: sha512-YAj/f4UhzNm7F5SbeyhVPZbS5gdGNcsaNy4TqIzknx5/fql0bHU+OY3wJEw75lMhfsZRQUCTvBNu88rcMoswmw==}
 
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
@@ -6452,6 +6458,8 @@ snapshots:
   chai@6.2.2: {}
 
   chalk@5.6.2: {}
+
+  chinese-days@1.5.4: {}
 
   chokidar@3.6.0:
     dependencies:

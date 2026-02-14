@@ -5,7 +5,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { useUtStore } from '@/stores/ut'
 
 export function SidebarCalendar() {
-  const { setCurrentDate, sidebarMonth, setSidebarMonth, setFlashDate } = useUtStore()
+  const { currentDate, setCurrentDate, setFlashDate } = useUtStore()
   const today = new Date()
 
   return (
@@ -13,13 +13,12 @@ export function SidebarCalendar() {
       mode="single"
       locale={zhCN}
       weekStartsOn={1}
-      month={sidebarMonth}
-      onMonthChange={setSidebarMonth}
-      selected={isSameMonth(sidebarMonth, today) ? today : undefined}
+      month={currentDate}
+      onMonthChange={setCurrentDate}
+      selected={isSameMonth(currentDate, today) ? today : undefined}
       onSelect={date => {
         if (date) {
           setCurrentDate(date)
-          setSidebarMonth(date)
           setFlashDate(format(date, 'yyyy-MM-dd'))
         }
       }}

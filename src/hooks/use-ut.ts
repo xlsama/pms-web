@@ -1,242 +1,152 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { eachDayOfInterval, endOfMonth, format, startOfMonth } from 'date-fns'
 
-import type { ConsumeRes, UpdateConsumeReq, UtItem } from '@/api/ut'
-import { UtStatus } from '@/api/ut'
+import type { ConsumeRes, UpdateConsumeReq } from '@/api/ut'
+import { getConsume, getRejectUt, UtStatus, updateConsume } from '@/api/ut'
+import { isWorkday } from '@/lib/ut-utils'
+import type { DailyData, DayStatus, MonthStats, Project, UtAllocation } from '@/types/ut'
 
 export const utKeys = {
   all: ['ut'] as const,
-  monthly: (year: number, month: number) => [...utKeys.all, 'monthly', year, month] as const,
-  weekly: (weekIndex: number) => [...utKeys.all, 'weekly', weekIndex] as const,
-  projects: () => [...utKeys.all, 'projects'] as const,
+  days: () => [...utKeys.all, 'day'] as const,
+  day: (date: string) => [...utKeys.all, 'day', date] as const,
   rejected: () => [...utKeys.all, 'rejected'] as const,
 }
 
-// Mock projects data
-const mockProjects: Array<UtItem> = [
-  {
-    id: 1,
-    userId: 1,
-    userName: '张三',
-    userCode: 'zhangsan',
-    userType: 'dev',
-    type: '1',
-    projectId: 101,
-    projectCode: 'PROJ-001',
-    projectName: 'AIGC Chatbot',
-    val: 0,
-    levelCoefficient: 1,
-    standardVal: 1,
-    status: UtStatus.None,
-    userStatus: 'active',
-    date: null,
-    dates: null,
-    cost: 0,
-    deleted: false,
-    createTime: null,
-    createTimes: null,
-    createTimeFull: null,
-    createTimeFulls: null,
-    createBy: null,
-    modifyTime: null,
-    modifyTimes: null,
-    modifyBy: null,
-    weekIndex: null,
-    utType: '1',
-    utTypes: null,
-    workOvertime: 0,
-    hasChildren: false,
-    children: null,
-    totalManDays: 30,
-    manDaysUsed: 12,
-    manDaysRemaining: 18,
-    stage: 'development',
-    workOvertimeStatus: null,
-  },
-  {
-    id: 2,
-    userId: 1,
-    userName: '张三',
-    userCode: 'zhangsan',
-    userType: 'dev',
-    type: '1',
-    projectId: 102,
-    projectCode: 'PROJ-002',
-    projectName: 'Starbucks BTS',
-    val: 0,
-    levelCoefficient: 1,
-    standardVal: 1,
-    status: UtStatus.None,
-    userStatus: 'active',
-    date: null,
-    dates: null,
-    cost: 0,
-    deleted: false,
-    createTime: null,
-    createTimes: null,
-    createTimeFull: null,
-    createTimeFulls: null,
-    createBy: null,
-    modifyTime: null,
-    modifyTimes: null,
-    modifyBy: null,
-    weekIndex: null,
-    utType: '1',
-    utTypes: null,
-    workOvertime: 0,
-    hasChildren: false,
-    children: null,
-    totalManDays: 50,
-    manDaysUsed: 25,
-    manDaysRemaining: 25,
-    stage: 'development',
-    workOvertimeStatus: null,
-  },
-  {
-    id: 3,
-    userId: 1,
-    userName: '张三',
-    userCode: 'zhangsan',
-    userType: 'dev',
-    type: '1',
-    projectId: 103,
-    projectCode: 'PROJ-003',
-    projectName: '内部管理系统',
-    val: 0,
-    levelCoefficient: 1,
-    standardVal: 1,
-    status: UtStatus.None,
-    userStatus: 'active',
-    date: null,
-    dates: null,
-    cost: 0,
-    deleted: false,
-    createTime: null,
-    createTimes: null,
-    createTimeFull: null,
-    createTimeFulls: null,
-    createBy: null,
-    modifyTime: null,
-    modifyTimes: null,
-    modifyBy: null,
-    weekIndex: null,
-    utType: '1',
-    utTypes: null,
-    workOvertime: 0,
-    hasChildren: false,
-    children: null,
-    totalManDays: 20,
-    manDaysUsed: 5,
-    manDaysRemaining: 15,
-    stage: 'maintenance',
-    workOvertimeStatus: null,
-  },
-]
+function getQueryableDates(month: Date): Array<string> {
+  const today = new Date()
+  const monthStart = startOfMonth(month)
+  const monthEnd = endOfMonth(month)
 
-// Generate mock UT records for a month
-function generateMockUtRecords(year: number, month: number): Array<UtItem> {
-  const records: Array<UtItem> = []
-  const daysInMonth = new Date(year, month, 0).getDate()
+  // 未来月份返回空
+  if (monthStart > today) return []
 
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    const dayOfWeek = new Date(year, month - 1, day).getDay()
+  // 当月只到今天，过去月份全月
+  const end = monthEnd > today ? today : monthEnd
 
-    // Skip weekends
-    if (dayOfWeek === 0 || dayOfWeek === 6) continue
-
-    // Generate some mock records for past days
-    const today = new Date()
-    const currentDate = new Date(year, month - 1, day)
-
-    if (currentDate < today) {
-      // Past days have submitted records
-      const projectIndex = day % 3
-      const project = mockProjects[projectIndex]
-      const status =
-        day % 5 === 0 ? UtStatus.Rejected : day % 3 === 0 ? UtStatus.Check : UtStatus.Confirmed
-
-      records.push({
-        ...project,
-        id: day * 100 + 1,
-        date,
-        val: 1,
-        status,
-      })
-    }
-  }
-
-  return records
+  const allDays = eachDayOfInterval({ start: monthStart, end })
+  return allDays.filter(d => isWorkday(format(d, 'yyyy-MM-dd'))).map(d => format(d, 'yyyy-MM-dd'))
 }
 
-// Mock API response
-function getMockConsumeRes(year: number, month: number): ConsumeRes {
-  const records = generateMockUtRecords(year, month)
-  const today = new Date()
-  const daysInMonth = new Date(year, month, 0).getDate()
+function computeDayStatus(records: Array<UtAllocation>, totalUt: number): DayStatus {
+  if (records.length === 0) return 'empty'
+  if (records.some(r => r.status === UtStatus.Rejected)) return 'rejected'
+  if (records.some(r => r.status === UtStatus.Check)) return 'check'
+  if (records.every(r => r.status === UtStatus.Confirmed)) return 'confirmed'
+  if (totalUt >= 1) return 'complete'
+  return 'partial'
+}
 
-  // Calculate uncommitted workdays
-  const uncommittedCount: Array<{ workDate: string; workHours: number }> = []
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    const dayOfWeek = new Date(year, month - 1, day).getDay()
-    const currentDate = new Date(year, month - 1, day)
+function buildDailyData(date: string, res: ConsumeRes): DailyData {
+  const records: Array<UtAllocation> = res.list
+    .filter(item => item.val > 0 && item.date === date)
+    .map(item => ({
+      id: item.id,
+      date: item.date || date,
+      projectId: item.projectId,
+      projectName: item.projectName,
+      value: item.val,
+      status: item.status,
+    }))
 
-    if (dayOfWeek !== 0 && dayOfWeek !== 6 && currentDate <= today) {
-      const hasRecord = records.some(r => r.date === date)
-      if (!hasRecord) {
-        uncommittedCount.push({ workDate: date, workHours: 8 })
-      }
-    }
-  }
+  const totalUt = records.reduce((sum, r) => sum + r.value, 0)
+  const status = computeDayStatus(records, totalUt)
 
   return {
-    hasReject: records.some(r => r.status === UtStatus.Rejected),
-    submitFlag: true,
-    isWorkDays: true,
-    totalManDaysRemaining: 58,
-    uncommittedCount,
-    checkCount: records.filter(r => r.status === UtStatus.Check).length,
-    rejectedCount: records.filter(r => r.status === UtStatus.Rejected).length,
-    expiredCount: 0,
-    list: [...mockProjects, ...records],
+    date,
+    records,
+    totalUt,
+    status,
+    editable: status !== 'confirmed',
+    isWorkday: true,
+    submitFlag: res.submitFlag,
   }
 }
 
-export function useMonthlyUt(year: number, month: number) {
-  return useQuery({
-    queryKey: utKeys.monthly(year, month),
-    queryFn: () => Promise.resolve(getMockConsumeRes(year, month)),
-  })
+interface MonthCalendarData {
+  dailyMap: Map<string, DailyData>
+  projects: Array<Project>
+  stats: MonthStats
+  isPending: boolean
+  isError: boolean
 }
 
-export function useWeeklyUt(weekIndex: number) {
-  return useQuery({
-    queryKey: utKeys.weekly(weekIndex),
-    queryFn: () => Promise.resolve(getMockConsumeRes(2025, 1)),
-  })
-}
+export function useMonthCalendarData(month: Date): MonthCalendarData {
+  const dates = getQueryableDates(month)
 
-export function useUserProjects() {
-  return useQuery({
-    queryKey: utKeys.projects(),
-    queryFn: () =>
-      Promise.resolve(
-        mockProjects.map(p => ({
-          id: p.projectId,
-          name: p.projectName,
-          code: p.projectCode || '',
-          manDaysRemaining: p.manDaysRemaining,
-          manDaysUsed: p.manDaysUsed,
-          totalManDays: p.totalManDays,
-        })),
-      ),
+  return useQueries({
+    queries: dates.map(date => ({
+      queryKey: utKeys.day(date),
+      queryFn: () => getConsume({ date }),
+      staleTime: 0,
+      gcTime: 0,
+    })),
+    combine: results => {
+      const dailyMap = new Map<string, DailyData>()
+      const projectMap = new Map<number, Project>()
+      let stats: MonthStats = {
+        totalManDaysRemaining: 0,
+        uncommittedDates: [],
+        checkCount: 0,
+        rejectedCount: 0,
+      }
+      let statsExtracted = false
+
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i]
+        const date = dates[i]
+
+        if (!result.data) continue
+        const res = result.data
+
+        // Build daily data
+        dailyMap.set(date, buildDailyData(date, res))
+
+        // Extract projects (val=0 items are project definitions)
+        for (const item of res.list) {
+          if (item.projectId) {
+            // 后处理的覆盖先处理的（最新 manDays）
+            projectMap.set(item.projectId, {
+              id: item.projectId,
+              name: item.projectName,
+              code: item.projectCode || '',
+              manDaysRemaining: item.manDaysRemaining,
+              manDaysUsed: item.manDaysUsed,
+              totalManDays: item.totalManDays,
+            })
+          }
+        }
+
+        // Extract stats from any successful response (global values)
+        if (!statsExtracted) {
+          stats = {
+            totalManDaysRemaining: res.totalManDaysRemaining,
+            uncommittedDates: res.uncommittedCount,
+            checkCount: res.checkCount,
+            rejectedCount: res.rejectedCount,
+          }
+          statsExtracted = true
+        }
+      }
+
+      // Deduplicate projects - keep unique by id
+      const projects = Array.from(projectMap.values())
+
+      return {
+        dailyMap,
+        projects,
+        stats,
+        isPending: results.some(r => r.isPending),
+        isError: results.some(r => r.isError),
+      }
+    },
   })
 }
 
 export function useRejectedUt() {
   return useQuery({
     queryKey: utKeys.rejected(),
-    queryFn: () => Promise.resolve([] as Array<UtItem>),
+    queryFn: () => getRejectUt(),
   })
 }
 
@@ -244,12 +154,13 @@ export function useSubmitUt() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (_req: UpdateConsumeReq) => {
-      // Mock submit - just return success
-      return Promise.resolve({})
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: utKeys.all })
+    mutationFn: (req: UpdateConsumeReq) => updateConsume(req),
+    onSuccess: (_data, variables) => {
+      // Only invalidate affected dates
+      const affectedDates = new Set(variables.list.map(item => item.date))
+      for (const date of affectedDates) {
+        queryClient.invalidateQueries({ queryKey: utKeys.day(date) })
+      }
     },
   })
 }

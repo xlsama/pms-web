@@ -2,8 +2,9 @@ import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 
 import { Card, CardContent } from '@/components/ui/card'
+import { getAdjustmentType } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
-import type { DailyUtSummary } from '@/types/ut'
+import type { DailyData } from '@/types/ut'
 
 import { UtStatusBadge } from '../status/ut-status-badge'
 
@@ -11,13 +12,14 @@ interface UtDayCardProps {
   date: string
   isToday: boolean
   isWeekend: boolean
-  summary?: DailyUtSummary
+  dailyData?: DailyData
   onClick: () => void
 }
 
-export function UtDayCard({ date, isToday, isWeekend, summary, onClick }: UtDayCardProps) {
+export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDayCardProps) {
   const dateObj = new Date(date)
-  const hasData = summary && summary.allocations.length > 0
+  const hasData = dailyData && dailyData.records.length > 0
+  const adjustment = getAdjustmentType(date)
 
   return (
     <Card
@@ -38,14 +40,24 @@ export function UtDayCard({ date, isToday, isWeekend, summary, onClick }: UtDayC
               <span className="text-sm text-muted-foreground">
                 {format(dateObj, 'EEEE', { locale: zhCN })}
               </span>
+              {adjustment && (
+                <span
+                  className={cn(
+                    'flex size-3.5 items-center justify-center rounded-full text-[8px] leading-none font-medium text-white',
+                    adjustment === 'work' ? 'bg-red-400' : 'bg-green-400',
+                  )}
+                >
+                  {adjustment === 'work' ? '班' : '休'}
+                </span>
+              )}
             </div>
 
             {hasData ? (
               <div className="mt-2 space-y-1">
-                {summary.allocations.map((allocation, i) => (
+                {dailyData.records.map((record, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
-                    <span className="flex-1 truncate">{allocation.projectName}</span>
-                    <span className="font-medium">{allocation.value} UT</span>
+                    <span className="flex-1 truncate">{record.projectName}</span>
+                    <span className="font-medium">{record.value} UT</span>
                   </div>
                 ))}
               </div>
@@ -57,15 +69,15 @@ export function UtDayCard({ date, isToday, isWeekend, summary, onClick }: UtDayC
           </div>
 
           <div className="flex flex-col items-end gap-1">
-            {hasData && <UtStatusBadge status={summary.status} />}
+            {hasData && <UtStatusBadge status={dailyData.records[0].status} />}
             {hasData && (
               <span
                 className={cn(
                   'text-sm font-medium',
-                  summary.totalUt === 1 ? 'text-green-600' : 'text-orange-600',
+                  dailyData.totalUt === 1 ? 'text-green-600' : 'text-orange-600',
                 )}
               >
-                {summary.totalUt} / 1
+                {dailyData.totalUt} / 1
               </span>
             )}
             {!hasData && !isWeekend && (

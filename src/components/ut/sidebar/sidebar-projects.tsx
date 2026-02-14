@@ -1,34 +1,36 @@
+import { useMemo } from 'react'
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useMonthlyUt } from '@/hooks/use-ut'
+import { useMonthCalendarData } from '@/hooks/use-ut'
+import { isLeaveProject } from '@/lib/ut-utils'
 import { useUtStore } from '@/stores/ut'
-import type { Project } from '@/types/ut'
 
 import { DraggableProject } from '../dnd/draggable-project'
 
 export function SidebarProjects() {
   const { currentDate } = useUtStore()
-  const { data, isLoading } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
+  const { projects, isPending } = useMonthCalendarData(currentDate)
 
-  // Transform UtItem list to Project[]
-  const projects: Array<Project> =
-    data?.list
-      .filter(item => item.projectId && !item.hasChildren)
-      .reduce((acc, item) => {
-        const existing = acc.find(p => p.id === item.projectId)
-        if (!existing) {
-          acc.push({
-            id: item.projectId,
-            name: item.projectName,
-            code: item.projectCode || '',
-            manDaysRemaining: item.manDaysRemaining,
-            manDaysUsed: item.manDaysUsed,
-            totalManDays: item.totalManDays,
-          })
-        }
-        return acc
-      }, [] as Array<Project>) || []
+  const { regularProjects, leaveProjects } = useMemo(() => {
+    const regular: typeof projects = []
+    const leave: typeof projects = []
+    for (const p of projects) {
+      if (isLeaveProject(p.name)) {
+        leave.push(p)
+      } else {
+        regular.push(p)
+      }
+    }
+    return { regularProjects: regular, leaveProjects: leave }
+  }, [projects])
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="space-y-2">
         <Skeleton className="h-12 w-full" />
@@ -44,9 +46,26 @@ export function SidebarProjects() {
 
   return (
     <div className="space-y-2">
-      {projects.map(project => (
+      {regularProjects.map(project => (
         <DraggableProject key={project.id} project={project} />
       ))}
+
+      {leaveProjects.length > 0 && (
+        <Accordion type="single" collapsible>
+          <AccordionItem value="leave" className="border-none">
+            <AccordionTrigger className="px-2 py-2 text-xs text-muted-foreground hover:no-underline">
+              请假项目
+            </AccordionTrigger>
+            <AccordionContent className="pb-0">
+              <div className="space-y-2">
+                {leaveProjects.map(project => (
+                  <DraggableProject key={project.id} project={project} />
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
     </div>
   )
 }

@@ -15,11 +15,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { useMonthlyUt } from '@/hooks/use-ut'
-import { buildDailySummaries, extractProjects } from '@/lib/ut-utils'
+import { useMonthCalendarData } from '@/hooks/use-ut'
 import { cn } from '@/lib/utils'
 import { useUtStore } from '@/stores/ut'
-import type { DailyUtSummary } from '@/types/ut'
+import type { DailyData } from '@/types/ut'
 
 import { UtDayCell } from './ut-day-cell'
 import { UtDayPopover } from './ut-day-popover'
@@ -30,11 +29,9 @@ export function UtCalendar() {
   const {
     currentDate,
     setCurrentDate,
-    setSidebarMonth,
     selectedDate,
     setSelectedDate,
     setPrefilledProject,
-    setProjects,
     formOpen,
     setFormOpen,
     flashDate,
@@ -53,19 +50,17 @@ export function UtCalendar() {
     }
   }, [formOpen, selectedDate, anchorEl])
 
-  const { data } = useMonthlyUt(currentDate.getFullYear(), currentDate.getMonth() + 1)
+  const { dailyMap, projects } = useMonthCalendarData(currentDate)
 
   function navigateMonth(delta: number): void {
     const newDate = new Date(currentDate)
     newDate.setMonth(newDate.getMonth() + delta)
     setCurrentDate(newDate)
-    setSidebarMonth(newDate)
   }
 
   function goToToday(): void {
     const today = new Date()
     setCurrentDate(today)
-    setSidebarMonth(today)
     setFlashDate(format(today, 'yyyy-MM-dd'))
   }
 
@@ -78,17 +73,6 @@ export function UtCalendar() {
 
     return eachDayOfInterval({ start: calendarStart, end: calendarEnd })
   }, [currentDate])
-
-  // Build daily summaries map
-  const dailySummaries = useMemo(() => buildDailySummaries(data?.list), [data])
-
-  // Extract projects from data
-  const projects = useMemo(() => extractProjects(data?.list), [data])
-
-  // Sync projects to store
-  useEffect(() => {
-    setProjects(projects)
-  }, [projects, setProjects])
 
   function handleDayClick(date: string, element: HTMLElement): void {
     setSelectedDate(date)
@@ -154,7 +138,7 @@ export function UtCalendar() {
       >
         {calendarDays.map(day => {
           const dateStr = format(day, 'yyyy-MM-dd')
-          const summary = dailySummaries.get(dateStr)
+          const dailyData = dailyMap.get(dateStr)
           const isCurrentMonth = isSameMonth(day, currentDate)
 
           return (
@@ -164,7 +148,7 @@ export function UtCalendar() {
               isCurrentMonth={isCurrentMonth}
               isToday={isToday(day)}
               isWeekend={isWeekend(day)}
-              summary={summary}
+              dailyData={dailyData}
               onClick={el => handleDayClick(dateStr, el)}
               isSelected={selectedDate === dateStr}
               isFlashing={flashDate === dateStr}
@@ -181,7 +165,7 @@ export function UtCalendar() {
           onOpenChange={open => !open && handlePopoverClose()}
           date={selectedDate}
           projects={projects}
-          summary={dailySummaries.get(selectedDate)}
+          dailyData={dailyMap.get(selectedDate)}
           anchorEl={anchorEl}
         />
       )}
@@ -194,7 +178,7 @@ interface DroppableDayProps {
   isCurrentMonth: boolean
   isToday: boolean
   isWeekend: boolean
-  summary?: DailyUtSummary
+  dailyData?: DailyData
   onClick: (element: HTMLElement) => void
   isSelected: boolean
   isFlashing: boolean
@@ -206,7 +190,7 @@ function DroppableDay({
   isCurrentMonth,
   isToday: today,
   isWeekend: weekend,
-  summary,
+  dailyData,
   onClick,
   isSelected,
   isFlashing,
@@ -243,7 +227,12 @@ function DroppableDay({
       )}
       onClick={e => onClick(e.currentTarget)}
     >
-      <UtDayCell date={date} isCurrentMonth={isCurrentMonth} isToday={today} summary={summary} />
+      <UtDayCell
+        date={date}
+        isCurrentMonth={isCurrentMonth}
+        isToday={today}
+        dailyData={dailyData}
+      />
     </div>
   )
 }

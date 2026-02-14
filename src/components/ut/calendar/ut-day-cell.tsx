@@ -1,94 +1,74 @@
-import { getStatusColorClass } from '@/lib/ut-utils'
-import { cn } from '@/lib/utils'
-import type { DailyUtSummary } from '@/types/ut'
+import { getLunarDate } from 'chinese-days'
 
-// 农历假数据（后续可替换为 chinese-days 库）
-const LUNAR_DAYS = [
-  '初一',
-  '初二',
-  '初三',
-  '初四',
-  '初五',
-  '初六',
-  '初七',
-  '初八',
-  '初九',
-  '初十',
-  '十一',
-  '十二',
-  '十三',
-  '十四',
-  '十五',
-  '十六',
-  '十七',
-  '十八',
-  '十九',
-  '二十',
-  '廿一',
-  '廿二',
-  '廿三',
-  '廿四',
-  '廿五',
-  '廿六',
-  '廿七',
-  '廿八',
-  '廿九',
-  '三十',
-]
+import { getAdjustmentType, getStatusColorClass } from '@/lib/ut-utils'
+import { cn } from '@/lib/utils'
+import type { DailyData } from '@/types/ut'
 
 function getLunarDay(date: string): string {
-  // 假数据：使用日期的天数来模拟农历
-  const d = new Date(date).getDate()
-  return LUNAR_DAYS[(d - 1) % 30]
+  const lunar = getLunarDate(date)
+  return lunar.lunarDay === 1 ? lunar.lunarMonCN : lunar.lunarDayCN
 }
 
 interface UtDayCellProps {
   date: string
   isCurrentMonth: boolean
   isToday: boolean
-  summary?: DailyUtSummary
+  dailyData?: DailyData
 }
 
-export function UtDayCell({ date, isCurrentMonth, isToday, summary }: UtDayCellProps) {
+export function UtDayCell({ date, isCurrentMonth, isToday, dailyData }: UtDayCellProps) {
   const day = new Date(date).getDate()
-  const hasData = summary && summary.allocations.length > 0
+  const hasData = dailyData && dailyData.records.length > 0
   const lunarDay = getLunarDay(date)
+  const adjustment = getAdjustmentType(date)
 
   return (
     <div className="flex h-full flex-col">
       {/* Date number */}
       <div className="flex items-center justify-between">
-        <span
-          className={cn(
-            'flex size-6 items-center justify-center rounded-full text-sm',
-            !isCurrentMonth && 'text-muted-foreground',
-            isToday && 'bg-primary text-primary-foreground',
+        <div className="relative">
+          <span
+            className={cn(
+              'flex size-6 items-center justify-center rounded-full text-sm',
+              !isCurrentMonth && 'text-muted-foreground',
+              isToday && 'bg-primary text-primary-foreground',
+            )}
+          >
+            {day}
+          </span>
+          {adjustment && (
+            <span
+              className={cn(
+                'absolute -top-px -right-3.5 flex size-3.5 items-center justify-center rounded-full text-[8px] leading-none font-medium text-white',
+                adjustment === 'work' ? 'bg-red-400' : 'bg-green-400',
+              )}
+            >
+              {adjustment === 'work' ? '班' : '休'}
+            </span>
           )}
-        >
-          {day}
-        </span>
-        <span className={cn('text-xs text-muted-foreground', !isCurrentMonth && 'opacity-50')}>
+        </div>
+        <span className={cn('text-[10px] text-muted-foreground', !isCurrentMonth && 'opacity-50')}>
           {lunarDay}
         </span>
       </div>
 
-      {/* Allocations preview */}
+      {/* Records preview */}
       {hasData && (
         <div className="mt-1 space-y-0.5 overflow-hidden">
-          {summary.allocations.slice(0, 2).map((allocation, i) => (
+          {dailyData.records.slice(0, 2).map((record, i) => (
             <div
               key={i}
               className={cn(
                 'truncate rounded px-1 py-0.5 text-xs',
-                getStatusColorClass(allocation.status),
+                getStatusColorClass(record.status),
               )}
             >
-              {allocation.projectName} ({allocation.value})
+              {record.projectName} ({record.value})
             </div>
           ))}
-          {summary.allocations.length > 2 && (
+          {dailyData.records.length > 2 && (
             <div className="text-xs text-muted-foreground">
-              +{summary.allocations.length - 2} 更多
+              +{dailyData.records.length - 2} 更多
             </div>
           )}
         </div>
@@ -100,10 +80,10 @@ export function UtDayCell({ date, isCurrentMonth, isToday, summary }: UtDayCellP
           <div
             className={cn(
               'text-right text-xs font-medium',
-              summary.totalUt === 1 ? 'text-green-600' : 'text-orange-600',
+              dailyData.totalUt === 1 ? 'text-green-600' : 'text-orange-600',
             )}
           >
-            {summary.totalUt} UT
+            {dailyData.totalUt} UT
           </div>
         </div>
       )}

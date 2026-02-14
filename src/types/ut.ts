@@ -25,37 +25,24 @@ export interface UtAllocation {
   utType?: number
 }
 
-// Daily summary for calendar display
-export interface DailyUtSummary {
-  date: string // yyyy-MM-dd
-  isWorkday: boolean
-  allocations: Array<UtAllocation>
+// Daily data for calendar display (replaces DailyUtSummary)
+export interface DailyData {
+  date: string // "yyyy-MM-dd"
+  records: Array<UtAllocation> // val > 0 的 UT 记录
   totalUt: number
-  status: UtStatus
+  status: DayStatus
   editable: boolean
+  isWorkday: boolean
+  submitFlag: boolean
 }
 
-// Monthly data response
-export interface MonthlyUtData {
-  year: number
-  month: number
-  days: Array<DailyUtSummary>
-  projects: Array<Project>
-  stats: {
-    totalManDaysRemaining: number
-    uncommittedCount: number
-    checkCount: number
-    rejectedCount: number
-  }
-}
+export type DayStatus = 'empty' | 'partial' | 'complete' | 'confirmed' | 'check' | 'rejected'
 
-// Weekly data response
-export interface WeeklyUtData {
-  weekIndex: number
-  startDate: string
-  endDate: string
-  days: Array<DailyUtSummary>
-  projects: Array<Project>
+export interface MonthStats {
+  totalManDaysRemaining: number
+  uncommittedDates: Array<{ workDate: string; workHours: number }>
+  checkCount: number
+  rejectedCount: number
 }
 
 // Form data for submitting UT
