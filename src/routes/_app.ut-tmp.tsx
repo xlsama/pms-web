@@ -16,7 +16,7 @@ import Paragraph from '@yoopta/paragraph'
 import Table from '@yoopta/table'
 import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar'
 import { useDebounceFn } from 'ahooks'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Copy, RotateCcw } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -144,19 +144,20 @@ function RouteComponent() {
         </div>
         <div className="flex gap-1.5 md:gap-2">
           <Button
-            variant="outline"
-            size="sm"
-            className="h-8 px-2 text-xs md:h-9 md:px-4 md:text-sm"
+            variant="ghost"
+            size="icon"
+            className="size-8 shrink-0 md:size-9"
             onClick={handleResetTemplate}
           >
-            重置
+            <RotateCcw className="size-4" />
           </Button>
           <Button
-            size="sm"
-            className="h-8 px-2 text-xs md:h-9 md:px-4 md:text-sm"
+            variant="ghost"
+            size="icon"
+            className="size-8 shrink-0 md:size-9"
             onClick={handleExport}
           >
-            导出
+            <Copy className="size-4" />
           </Button>
         </div>
       </div>
