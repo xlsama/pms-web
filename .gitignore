@@ -7,3 +7,6 @@ count.txt
 .nitro
 .tanstack
 .wrangler
+
+# Local Netlify folder
+.netlify
