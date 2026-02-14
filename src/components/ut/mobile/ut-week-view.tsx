@@ -64,7 +64,7 @@ export function UtWeekView() {
   return (
     <div className="flex h-full flex-col">
       {/* Compact Header Card */}
-      <div className="m-3 mb-0 rounded-lg bg-muted/50 p-3">
+      <div className="m-4 mb-0 rounded-lg bg-muted/50 p-3">
         {/* First row: Navigation + Date + Stats */}
         <div className="flex items-center justify-between gap-2">
           {/* Left: Navigation + Date */}
