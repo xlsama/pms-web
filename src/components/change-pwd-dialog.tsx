@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm } from '@tanstack/react-form'
+import { useForm, useStore } from '@tanstack/react-form'
 import { z } from 'zod'
 import { Spinner } from './ui/spinner'
 import { Button } from '@/components/ui/button'
@@ -54,6 +54,8 @@ export function ChangePwdDialog({
       form.reset()
     },
   })
+
+  const isSubmitting = useStore(form.store, state => state.isSubmitting)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -111,20 +113,16 @@ export function ChangePwdDialog({
             </form.Field>
 
             <div className="flex justify-end">
-              <form.Subscribe selector={state => state.isSubmitting}>
-                {isSubmitting => (
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Spinner />
-                        提交中...
-                      </>
-                    ) : (
-                      '提交'
-                    )}
-                  </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Spinner />
+                    提交中...
+                  </>
+                ) : (
+                  '提交'
                 )}
-              </form.Subscribe>
+              </Button>
             </div>
           </FieldGroup>
         </form>
