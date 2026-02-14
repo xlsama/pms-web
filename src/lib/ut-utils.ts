@@ -32,12 +32,12 @@ export function isWorkday(date: string): boolean {
   return isChineseWorkday(date)
 }
 
-/** 调休类型：'work' = 周末上班, 'rest' = 工作日放假, null = 正常日 */
+/** 调休类型：'work' = 调休上班（周末）, 'rest' = 周末或节假日休息, null = 普通工作日 */
 export function getAdjustmentType(date: string): 'work' | 'rest' | null {
   const workday = isChineseWorkday(date)
   const weekend = isWeekend(new Date(date))
   if (workday && weekend) return 'work'
-  if (!workday && !weekend) return 'rest'
+  if (!workday || weekend) return 'rest'
   return null
 }
 

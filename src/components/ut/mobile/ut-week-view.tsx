@@ -15,7 +15,7 @@ import type { PanInfo } from 'motion/react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { useMonthCalendarData } from '@/hooks/use-ut'
+import { useCalendarData } from '@/hooks/use-ut'
 import { useUtStore } from '@/stores/ut'
 
 import { UtDayCard } from './ut-day-card'
@@ -29,7 +29,7 @@ export function UtWeekView() {
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 })
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd })
 
-  const { dailyMap, projects } = useMonthCalendarData(currentDate)
+  const { dailyMap, projects } = useCalendarData(weekStart, weekEnd)
 
   function navigateWeek(delta: number): void {
     const newDate = delta > 0 ? addWeeks(currentDate, 1) : subWeeks(currentDate, 1)

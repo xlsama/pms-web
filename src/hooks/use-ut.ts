@@ -1,5 +1,5 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
-import { eachDayOfInterval, endOfMonth, format, startOfMonth } from 'date-fns'
+import { eachDayOfInterval, format } from 'date-fns'
 
 import type { ConsumeRes, UpdateConsumeReq } from '@/api/ut'
 import { getConsume, getRejectUt, UtStatus, updateConsume } from '@/api/ut'
@@ -13,18 +13,16 @@ export const utKeys = {
   rejected: () => [...utKeys.all, 'rejected'] as const,
 }
 
-function getQueryableDates(month: Date): Array<string> {
+function getQueryableDates(start: Date, end: Date): Array<string> {
   const today = new Date()
-  const monthStart = startOfMonth(month)
-  const monthEnd = endOfMonth(month)
 
-  // 未来月份返回空
-  if (monthStart > today) return []
+  // 范围起始已超过今天，返回空
+  if (start > today) return []
 
-  // 当月只到今天，过去月份全月
-  const end = monthEnd > today ? today : monthEnd
+  // 截止到今天
+  const clampedEnd = end > today ? today : end
 
-  const allDays = eachDayOfInterval({ start: monthStart, end })
+  const allDays = eachDayOfInterval({ start, end: clampedEnd })
   return allDays.filter(d => isWorkday(format(d, 'yyyy-MM-dd'))).map(d => format(d, 'yyyy-MM-dd'))
 }
 
@@ -63,7 +61,7 @@ function buildDailyData(date: string, res: ConsumeRes): DailyData {
   }
 }
 
-interface MonthCalendarData {
+interface CalendarData {
   dailyMap: Map<string, DailyData>
   projects: Array<Project>
   stats: MonthStats
@@ -71,8 +69,8 @@ interface MonthCalendarData {
   isError: boolean
 }
 
-export function useMonthCalendarData(month: Date): MonthCalendarData {
-  const dates = getQueryableDates(month)
+export function useCalendarData(start: Date, end: Date): CalendarData {
+  const dates = getQueryableDates(start, end)
 
   return useQueries({
     queries: dates.map(date => ({

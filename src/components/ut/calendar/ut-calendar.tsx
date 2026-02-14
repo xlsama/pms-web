@@ -15,7 +15,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { useMonthCalendarData } from '@/hooks/use-ut'
+import { useCalendarData } from '@/hooks/use-ut'
+import { getAdjustmentType } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
 import { useUtStore } from '@/stores/ut'
 import type { DailyData } from '@/types/ut'
@@ -50,7 +51,17 @@ export function UtCalendar() {
     }
   }, [formOpen, selectedDate, anchorEl])
 
-  const { dailyMap, projects } = useMonthCalendarData(currentDate)
+  // Compute calendar grid boundaries
+  const { calendarStart, calendarEnd } = useMemo(() => {
+    const monthStart = startOfMonth(currentDate)
+    const monthEnd = endOfMonth(currentDate)
+    return {
+      calendarStart: startOfWeek(monthStart, { weekStartsOn: 1 }),
+      calendarEnd: endOfWeek(monthEnd, { weekStartsOn: 1 }),
+    }
+  }, [currentDate])
+
+  const { dailyMap, projects } = useCalendarData(calendarStart, calendarEnd)
 
   function navigateMonth(delta: number): void {
     const newDate = new Date(currentDate)
@@ -66,13 +77,8 @@ export function UtCalendar() {
 
   // Build calendar days
   const calendarDays = useMemo(() => {
-    const monthStart = startOfMonth(currentDate)
-    const monthEnd = endOfMonth(currentDate)
-    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 })
-    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 })
-
     return eachDayOfInterval({ start: calendarStart, end: calendarEnd })
-  }, [currentDate])
+  }, [calendarStart, calendarEnd])
 
   function handleDayClick(date: string, element: HTMLElement): void {
     setSelectedDate(date)
@@ -213,19 +219,23 @@ function DroppableDay({
     }
   }, [isFlashing, onFlashEnd])
 
+  const adjustment = getAdjustmentType(date)
+  const isRest = adjustment === 'rest'
+
   return (
     <div
       ref={setNodeRef}
       data-date={date}
       className={cn(
-        'min-h-24 cursor-pointer border-b border-r border-gray-200 p-1 transition-colors dark:border-gray-800',
-        !isCurrentMonth && 'bg-muted/30',
-        weekend && 'bg-muted/20',
+        'min-h-24 border-b border-r border-gray-200 p-1 transition-colors dark:border-gray-800',
+        isRest ? 'cursor-not-allowed bg-muted/50' : 'cursor-pointer',
+        !isRest && !isCurrentMonth && 'bg-muted/30',
+        !isRest && weekend && 'bg-muted/20',
         isOver && 'bg-primary/10 ring-1 ring-inset ring-gray-300',
         isSelected && 'ring-1 ring-inset ring-gray-300',
         isFlashing && 'animate-flash',
       )}
-      onClick={e => onClick(e.currentTarget)}
+      onClick={isRest ? undefined : e => onClick(e.currentTarget)}
     >
       <UtDayCell
         date={date}

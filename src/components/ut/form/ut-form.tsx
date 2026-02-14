@@ -55,10 +55,10 @@ function AllocationCard({
 }) {
   return (
     <div className="space-y-2 rounded-lg border p-3">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">{allocation.projectName}</span>
+      <div className="flex items-center justify-between gap-2 min-w-0">
+        <span className="truncate text-sm font-medium">{allocation.projectName}</span>
         {allocation.value > 0 && (
-          <span className="text-sm font-medium text-primary">{allocation.value} UT</span>
+          <span className="shrink-0 text-sm font-medium text-primary">{allocation.value} UT</span>
         )}
       </div>
 
@@ -180,7 +180,9 @@ export function UtForm({
     )
   }
 
-  const formattedDate = format(new Date(date), 'M月d日 EEEE', { locale: zhCN })
+  const dateObj = new Date(date)
+  const formattedDay = format(dateObj, 'M月d日')
+  const formattedWeekday = format(dateObj, 'EEEE', { locale: zhCN })
 
   // Check if status is confirmed (not editable)
   const hasConfirmed = existingAllocations.some(a => a.status === UtStatus.Confirmed)
@@ -194,7 +196,9 @@ export function UtForm({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium">{formattedDate}</p>
+          <p className="text-sm font-medium">
+            {formattedDay} <span className="text-xs text-muted-foreground">{formattedWeekday}</span>
+          </p>
         </div>
         <div className="flex items-center gap-3">
           {canEdit && totalUt > 0 && (

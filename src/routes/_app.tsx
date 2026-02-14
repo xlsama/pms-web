@@ -1,5 +1,7 @@
 import { Link, Outlet, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { endOfMonth, startOfMonth } from 'date-fns'
 import { Menu, Moon, Sun } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { AppSidebar } from '@/components/app-sidebar'
 import { ModeToggle } from '@/components/theme-toggle'
@@ -16,10 +18,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
 import { useTheme } from '@/contexts/theme-provider'
-import { useMonthCalendarData } from '@/hooks/use-ut'
+import { useCalendarData } from '@/hooks/use-ut'
 import { useAuthStore } from '@/stores/auth'
 import { useUtStore } from '@/stores/ut'
 import type { Project } from '@/types/ut'
@@ -36,7 +39,11 @@ export const Route = createFileRoute('/_app')({
 
 function AppLayout() {
   const { currentDate, setSelectedDate, setPrefilledProject, setFormOpen } = useUtStore()
-  const { stats, isPending } = useMonthCalendarData(currentDate)
+  const monthRange = useMemo(
+    () => ({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) }),
+    [currentDate],
+  )
+  const { stats, isPending } = useCalendarData(monthRange.start, monthRange.end)
   const { setTheme } = useTheme()
   const navigate = useNavigate()
 
@@ -55,7 +62,12 @@ function AppLayout() {
             <div className="flex shrink-0 items-center gap-2">
               <SidebarTrigger />
               <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-              {!isPending && (
+              {isPending ? (
+                <div className="flex items-center gap-1.5">
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                </div>
+              ) : (
                 <div className="flex items-center gap-1.5">
                   <Badge className="border-transparent bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
                     剩余:

@@ -138,7 +138,7 @@ function RouteComponent() {
             className="size-8 shrink-0 rounded-full md:size-9"
             onClick={() => router.history.back()}
           >
-            <ArrowLeft className="size-4" />
+            <ArrowLeft className="size-5" />
           </Button>
           <h1 className="text-base font-medium whitespace-nowrap md:text-xl">UT模板</h1>
         </div>

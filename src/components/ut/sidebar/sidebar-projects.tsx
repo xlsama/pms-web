@@ -1,3 +1,4 @@
+import { endOfMonth, endOfWeek, startOfMonth, startOfWeek } from 'date-fns'
 import { useMemo } from 'react'
 
 import {
@@ -7,7 +8,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useMonthCalendarData } from '@/hooks/use-ut'
+import { useCalendarData } from '@/hooks/use-ut'
 import { isLeaveProject } from '@/lib/ut-utils'
 import { useUtStore } from '@/stores/ut'
 
@@ -15,7 +16,14 @@ import { DraggableProject } from '../dnd/draggable-project'
 
 export function SidebarProjects() {
   const { currentDate } = useUtStore()
-  const { projects, isPending } = useMonthCalendarData(currentDate)
+  const monthRange = useMemo(
+    () => ({
+      start: startOfWeek(startOfMonth(currentDate), { weekStartsOn: 1 }),
+      end: endOfWeek(endOfMonth(currentDate), { weekStartsOn: 1 }),
+    }),
+    [currentDate],
+  )
+  const { projects, isPending } = useCalendarData(monthRange.start, monthRange.end)
 
   const { regularProjects, leaveProjects } = useMemo(() => {
     const regular: typeof projects = []
