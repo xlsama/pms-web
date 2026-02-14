@@ -1,6 +1,6 @@
-import { UtStatus } from '@/types/ut'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { UtStatus } from '@/types/ut'
 
 interface UtStatusBadgeProps {
   status: UtStatus

@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { ChevronsUpDown, KeyRound, LogOut } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { useAuthStore } from '@/stores/auth'
+import { ChevronsUpDown, KeyRound, LogOut } from 'lucide-react'
+import { useState } from 'react'
+
+import { ChangePwdDialog } from '@/components/change-pwd-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -22,9 +23,9 @@ import {
   SidebarHeader,
   SidebarMenuButton,
 } from '@/components/ui/sidebar'
-import { ChangePwdDialog } from '@/components/change-pwd-dialog'
 import { SidebarCalendar } from '@/components/ut/sidebar/sidebar-calendar'
 import { SidebarProjects } from '@/components/ut/sidebar/sidebar-projects'
+import { useAuthStore } from '@/stores/auth'
 
 export function AppSidebar() {
   const user = useAuthStore(state => state.user)

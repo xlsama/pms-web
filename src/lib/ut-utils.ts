@@ -1,4 +1,5 @@
 import { isWeekend } from 'date-fns'
+
 import type { DailyUtSummary, Project, UtAllocation, UtItem } from '@/types/ut'
 import { UtStatus } from '@/types/ut'
 

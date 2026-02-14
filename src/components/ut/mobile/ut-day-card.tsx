@@ -1,9 +1,11 @@
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
-import { UtStatusBadge } from '../status/ut-status-badge'
-import type { DailyUtSummary } from '@/types/ut'
+
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import type { DailyUtSummary } from '@/types/ut'
+
+import { UtStatusBadge } from '../status/ut-status-badge'
 
 interface UtDayCardProps {
   date: string

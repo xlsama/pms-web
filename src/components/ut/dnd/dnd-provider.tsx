@@ -6,11 +6,13 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { DragOverlayContent } from './drag-overlay'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import type { ReactNode } from 'react'
-import type { Project } from '@/types/ut'
+
 import { useUtStore } from '@/stores/ut'
+import type { Project } from '@/types/ut'
+
+import { DragOverlayContent } from './drag-overlay'
 
 interface DndProviderProps {
   children: ReactNode

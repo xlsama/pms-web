@@ -1,7 +1,8 @@
-import { UtForm } from '../form/ut-form'
-import type { DailyUtSummary, Project } from '@/types/ut'
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { useUtStore } from '@/stores/ut'
+import type { DailyUtSummary, Project } from '@/types/ut'
+
+import { UtForm } from '../form/ut-form'
 
 interface UtDayPopoverProps {
   open: boolean

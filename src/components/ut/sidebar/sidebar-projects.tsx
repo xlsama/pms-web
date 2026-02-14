@@ -1,8 +1,9 @@
-import { DraggableProject } from '../dnd/draggable-project'
-import type { Project } from '@/types/ut'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useMonthlyUt } from '@/hooks/use-ut'
 import { useUtStore } from '@/stores/ut'
-import { Skeleton } from '@/components/ui/skeleton'
+import type { Project } from '@/types/ut'
+
+import { DraggableProject } from '../dnd/draggable-project'
 
 export function SidebarProjects() {
   const { currentDate } = useUtStore()

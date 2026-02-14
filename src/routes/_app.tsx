@@ -1,7 +1,8 @@
 import { Link, Outlet, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { Menu, Moon, Sun } from 'lucide-react'
-import type { Project } from '@/types/ut'
+
 import { AppSidebar } from '@/components/app-sidebar'
+import { ModeToggle } from '@/components/theme-toggle'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,11 +18,11 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
-import { ModeToggle } from '@/components/theme-toggle'
 import { useTheme } from '@/contexts/theme-provider'
 import { useMonthlyUt } from '@/hooks/use-ut'
 import { useAuthStore } from '@/stores/auth'
 import { useUtStore } from '@/stores/ut'
+import type { Project } from '@/types/ut'
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: () => {

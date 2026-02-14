@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useIsMobile } from '@/hooks/use-mobile'
+
 import { UtCalendar } from '@/components/ut/calendar/ut-calendar'
 import { UtWeekView } from '@/components/ut/mobile/ut-week-view'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export const Route = createFileRoute('/_app/')({
   component: RouteComponent,

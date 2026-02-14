@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
-import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
+
 import { Button } from '@/components/ui/button'
+import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 
 export function NotFound() {
   return (

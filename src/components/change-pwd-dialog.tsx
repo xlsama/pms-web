@@ -1,7 +1,8 @@
-import { useState } from 'react'
 import { useForm, useStore } from '@tanstack/react-form'
+import { useState } from 'react'
 import { z } from 'zod'
-import { Spinner } from './ui/spinner'
+
+import { changePwd } from '@/api/auth'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -10,9 +11,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { changePwd } from '@/api/auth'
+import { Input } from '@/components/ui/input'
+
+import { Spinner } from './ui/spinner'
 
 const schema = z
   .object({

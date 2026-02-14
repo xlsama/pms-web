@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { RotateCcw } from 'lucide-react'
 import { zhCN } from 'date-fns/locale'
+import { RotateCcw } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { UtValueInput } from './ut-value-input'
-import type { Project, UtAllocation } from '@/types/ut'
+
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { UtStatus } from '@/types/ut'
 import { useSubmitUt } from '@/hooks/use-ut'
-import { useUtStore } from '@/stores/ut'
 import { cn } from '@/lib/utils'
+import { useUtStore } from '@/stores/ut'
+import type { Project, UtAllocation } from '@/types/ut'
+import { UtStatus } from '@/types/ut'
+
+import { UtValueInput } from './ut-value-input'
 
 function getTotalColorClass(total: number): string {
   if (total === 1) return 'text-green-600'

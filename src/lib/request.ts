@@ -1,5 +1,6 @@
 import { ofetch } from 'ofetch'
 import { toast } from 'sonner'
+
 import { useAuthStore } from '@/stores/auth'
 
 export interface ApiRes<T = unknown> {

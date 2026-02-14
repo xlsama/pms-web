@@ -1,4 +1,3 @@
-import type { Project } from '@/types/ut'
 import {
   Select,
   SelectContent,
@@ -6,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import type { Project } from '@/types/ut'
 
 interface ProjectSelectProps {
   projects: Array<Project>
