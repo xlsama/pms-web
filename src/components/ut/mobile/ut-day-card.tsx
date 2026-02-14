@@ -26,16 +26,16 @@ export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDa
     <Card
       className={cn(
         'gap-2 py-3 transition-all',
-        adjustment === 'rest' ? 'cursor-not-allowed bg-muted/50' : 'cursor-pointer hover:border-primary/50',
+        adjustment === 'rest'
+          ? 'cursor-not-allowed bg-muted/50'
+          : 'cursor-pointer hover:border-primary/50',
         isToday && 'ring-2 ring-primary',
       )}
       onClick={adjustment === 'rest' ? undefined : onClick}
     >
       <CardHeader className="px-3">
         <CardTitle className="flex items-center gap-2">
-          <span className={cn('text-lg', isToday && 'text-primary')}>
-            {format(dateObj, 'd日')}
-          </span>
+          <span className={cn('text-lg', isToday && 'text-primary')}>{format(dateObj, 'd日')}</span>
           {adjustment && (
             <span
               className={cn(
@@ -75,9 +75,7 @@ export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDa
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            {isWeekend ? '休息日' : '点击填写'}
-          </p>
+          <p className="text-sm text-muted-foreground">{isWeekend ? '休息日' : '点击填写'}</p>
         )}
       </CardContent>
     </Card>

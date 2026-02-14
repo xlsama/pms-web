@@ -33,10 +33,10 @@ export function UtDayPopover({
     <Popover open={open} onOpenChange={onOpenChange}>
       {anchorEl && <PopoverAnchor virtualRef={{ current: anchorEl }} />}
       <PopoverContent
-        className="w-[calc(100vw-2rem)] max-w-md max-h-[calc(var(--radix-popover-content-available-height)-1rem)] overflow-y-auto p-6 lg:max-w-lg"
+        className="max-h-[calc(var(--radix-popover-content-available-height)-1rem)] w-[calc(100vw-2rem)] max-w-md overflow-y-auto p-6 lg:max-w-lg"
         align="start"
         onOpenAutoFocus={e => e.preventDefault()}
-        onPointerDownOutside={(e) => {
+        onPointerDownOutside={e => {
           const target = e.detail.originalEvent.target as HTMLElement
           const dayCell = target.closest('[data-date]')
           if (dayCell && !dayCell.hasAttribute('data-rest')) {

@@ -18,8 +18,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
 import { useTheme } from '@/contexts/theme-provider'
 import { useCalendarData } from '@/hooks/use-ut'

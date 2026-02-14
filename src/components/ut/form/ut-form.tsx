@@ -57,7 +57,7 @@ function AllocationCard({
 }) {
   return (
     <div className="space-y-2 rounded-lg border p-3">
-      <div className="flex items-center justify-between gap-2 min-w-0">
+      <div className="flex min-w-0 items-center justify-between gap-2">
         <span className="truncate text-sm font-medium">{allocation.projectName}</span>
         {allocation.value > 0 && (
           <span className="shrink-0 text-sm font-medium text-primary">{allocation.value} UT</span>
@@ -94,9 +94,7 @@ export function UtForm({
     const existingMap = new Map(existingAllocations.map(a => [a.projectId, a]))
 
     // Only include projects with remaining UT or existing allocations
-    const availableProjects = projects.filter(
-      p => p.manDaysRemaining > 0 || existingMap.has(p.id),
-    )
+    const availableProjects = projects.filter(p => p.manDaysRemaining > 0 || existingMap.has(p.id))
 
     const items = availableProjects.map(p => {
       const existing = existingMap.get(p.id)
