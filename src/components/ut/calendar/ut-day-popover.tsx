@@ -38,7 +38,8 @@ export function UtDayPopover({
         onOpenAutoFocus={e => e.preventDefault()}
         onPointerDownOutside={(e) => {
           const target = e.detail.originalEvent.target as HTMLElement
-          if (target.closest('[data-date]')) {
+          const dayCell = target.closest('[data-date]')
+          if (dayCell && !dayCell.hasAttribute('data-rest')) {
             e.preventDefault()
           }
         }}

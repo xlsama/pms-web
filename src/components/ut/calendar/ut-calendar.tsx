@@ -230,6 +230,7 @@ function DroppableDay({
     <div
       ref={setNodeRef}
       data-date={date}
+      data-rest={isRest || undefined}
       className={cn(
         'min-h-24 border-b border-r border-gray-200 p-1 transition-colors dark:border-gray-800',
         isRest ? 'cursor-not-allowed bg-muted/50' : 'cursor-pointer',
