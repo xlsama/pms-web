@@ -23,6 +23,7 @@ export interface UtAllocation {
   value: number // 0.25 / 0.5 / 0.75 / 1
   status: UtStatus
   utType?: number
+  type?: string
 }
 
 // Daily data for calendar display (replaces DailyUtSummary)

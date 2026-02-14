@@ -33,9 +33,15 @@ export function UtDayPopover({
     <Popover open={open} onOpenChange={onOpenChange}>
       {anchorEl && <PopoverAnchor virtualRef={{ current: anchorEl }} />}
       <PopoverContent
-        className="w-[calc(100vw-2rem)] max-w-md p-6 lg:max-w-lg"
+        className="w-[calc(100vw-2rem)] max-w-md max-h-[calc(var(--radix-popover-content-available-height)-1rem)] overflow-y-auto p-6 lg:max-w-lg"
         align="start"
         onOpenAutoFocus={e => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          const target = e.detail.originalEvent.target as HTMLElement
+          if (target.closest('[data-date]')) {
+            e.preventDefault()
+          }
+        }}
       >
         <div className="mb-4">
           <h2 className="text-lg font-semibold">填写 UT</h2>

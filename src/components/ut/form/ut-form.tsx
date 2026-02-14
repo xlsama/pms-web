@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import { format, getISOWeek } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { RotateCcw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -40,6 +40,8 @@ interface AllocationItem {
   projectId: number
   projectName: string
   value: number
+  type?: string
+  status?: UtStatus
 }
 
 function AllocationCard({
@@ -91,20 +93,35 @@ export function UtForm({
 
     const existingMap = new Map(existingAllocations.map(a => [a.projectId, a]))
 
-    setAllocations(
-      projects.map(p => {
-        const existing = existingMap.get(p.id)
-        const isPrefilled = prefilledProject?.id === p.id
-        const defaultValue = isPrefilled && !existing ? 1 : 0
-
-        return {
-          id: existing?.id,
-          projectId: p.id,
-          projectName: p.name,
-          value: existing?.value ?? defaultValue,
-        }
-      }),
+    // Only include projects with remaining UT or existing allocations
+    const availableProjects = projects.filter(
+      p => p.manDaysRemaining > 0 || existingMap.has(p.id),
     )
+
+    const items = availableProjects.map(p => {
+      const existing = existingMap.get(p.id)
+      const isPrefilled = prefilledProject?.id === p.id
+      const defaultValue = isPrefilled && !existing ? 1 : 0
+
+      return {
+        id: existing?.id,
+        projectId: p.id,
+        projectName: p.name,
+        value: existing?.value ?? defaultValue,
+        type: existing?.type,
+        status: existing?.status,
+      }
+    })
+
+    // Sort: projects with existing value first, then by remaining UT descending
+    const remainingMap = new Map(availableProjects.map(p => [p.id, p.manDaysRemaining]))
+    items.sort((a, b) => {
+      const hasValueDiff = (b.value > 0 ? 1 : 0) - (a.value > 0 ? 1 : 0)
+      if (hasValueDiff !== 0) return hasValueDiff
+      return (remainingMap.get(b.projectId) ?? 0) - (remainingMap.get(a.projectId) ?? 0)
+    })
+
+    setAllocations(items)
     setHasInitialized(true)
   }, [existingAllocations, projects, prefilledProject, hasInitialized])
 
@@ -160,14 +177,14 @@ export function UtForm({
       date,
       projectId: a.projectId,
       projectName: a.projectName,
-      status: UtStatus.Check,
-      type: '1',
-      utType: 1,
+      status: a.status || UtStatus.Check,
+      type: a.type || '1',
+      utType: 0,
       val: a.value,
     }))
 
     submitUt.mutate(
-      { list },
+      { weekIndex: getISOWeek(new Date(date)), list },
       {
         onSuccess: () => {
           toast.success('提交成功')

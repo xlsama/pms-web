@@ -81,6 +81,10 @@ export function UtCalendar() {
   }, [calendarStart, calendarEnd])
 
   function handleDayClick(date: string, element: HTMLElement): void {
+    if (formOpen) {
+      handlePopoverClose()
+      return
+    }
     setSelectedDate(date)
     setPrefilledProject(null)
     setAnchorEl(element)

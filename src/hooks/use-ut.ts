@@ -45,6 +45,7 @@ function buildDailyData(date: string, res: ConsumeRes): DailyData {
       projectName: item.projectName,
       value: item.val,
       status: item.status,
+      type: item.type,
     }))
 
   const totalUt = records.reduce((sum, r) => sum + r.value, 0)

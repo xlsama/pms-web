@@ -46,20 +46,22 @@ export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDa
               {adjustment === 'work' ? '班' : '休'}
             </span>
           )}
-          {hasData && (
+          <span className="text-xs text-muted-foreground">
+            {format(dateObj, 'EE', { locale: zhCN })}·{lunarDay}
+          </span>
+        </CardTitle>
+        {hasData && (
+          <CardAction>
             <span
               className={cn(
-                'text-sm',
+                'text-sm font-medium',
                 dailyData.totalUt === 1 ? 'text-green-600' : 'text-orange-600',
               )}
             >
               {dailyData.totalUt} / 1
             </span>
-          )}
-        </CardTitle>
-        <CardAction className="text-xs text-muted-foreground">
-          {format(dateObj, 'EE', { locale: zhCN })} · {lunarDay}
-        </CardAction>
+          </CardAction>
+        )}
       </CardHeader>
 
       <CardContent className="px-3">
