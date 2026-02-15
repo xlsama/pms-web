@@ -27,7 +27,7 @@ export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDa
       className={cn(
         'gap-2 py-3 transition-all',
         adjustment === 'rest'
-          ? 'cursor-not-allowed bg-muted/50'
+          ? 'cursor-not-allowed bg-muted/50 dark:bg-muted'
           : 'cursor-pointer hover:border-primary/50',
         isToday && 'ring-2 ring-primary',
       )}
