@@ -1,13 +1,6 @@
-import { getLunarDate } from 'chinese-days'
-
-import { getAdjustmentType, getStatusColorClass } from '@/lib/ut-utils'
+import { getAdjustmentType, getDateLabel, getStatusColorClass } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
 import type { DailyData } from '@/types/ut'
-
-function getLunarDay(date: string): string {
-  const lunar = getLunarDate(date)
-  return lunar.lunarDay === 1 ? lunar.lunarMonCN : lunar.lunarDayCN
-}
 
 interface UtDayCellProps {
   date: string
@@ -19,7 +12,7 @@ interface UtDayCellProps {
 export function UtDayCell({ date, isCurrentMonth, isToday, dailyData }: UtDayCellProps) {
   const day = new Date(date).getDate()
   const hasData = dailyData && dailyData.records.length > 0
-  const lunarDay = getLunarDay(date)
+  const { text: lunarText, isFestival } = getDateLabel(date)
   const adjustment = getAdjustmentType(date)
 
   return (
@@ -47,8 +40,12 @@ export function UtDayCell({ date, isCurrentMonth, isToday, dailyData }: UtDayCel
             </span>
           )}
         </div>
-        <span className={cn('text-[10px] text-muted-foreground', !isCurrentMonth && 'opacity-50')}>
-          {lunarDay}
+        <span className={cn(
+          'text-[10px]',
+          isFestival ? 'text-primary' : 'text-muted-foreground',
+          !isCurrentMonth && 'opacity-50',
+        )}>
+          {lunarText}
         </span>
       </div>
 

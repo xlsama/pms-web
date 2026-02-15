@@ -1,9 +1,8 @@
-import { getLunarDate } from 'chinese-days'
 import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getAdjustmentType } from '@/lib/ut-utils'
+import { getAdjustmentType, getDateLabel } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
 import type { DailyData } from '@/types/ut'
 
@@ -19,8 +18,7 @@ export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDa
   const dateObj = new Date(date)
   const hasData = dailyData && dailyData.records.length > 0
   const adjustment = getAdjustmentType(date)
-  const lunar = getLunarDate(date)
-  const lunarDay = lunar.lunarDay === 1 ? lunar.lunarMonCN : lunar.lunarDayCN
+  const { text: lunarText, isFestival } = getDateLabel(date)
 
   return (
     <Card
@@ -35,19 +33,23 @@ export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDa
     >
       <CardHeader className="px-3">
         <CardTitle className="flex items-center gap-2">
-          <span className={cn('text-lg', isToday && 'text-primary')}>{format(dateObj, 'd日')}</span>
-          {adjustment && (
-            <span
-              className={cn(
-                'flex size-3.5 items-center justify-center rounded-full text-[8px] leading-none font-medium text-white',
-                adjustment === 'work' ? 'bg-red-400' : 'bg-green-400',
-              )}
-            >
-              {adjustment === 'work' ? '班' : '休'}
+          <div className="relative">
+            <span className={cn('text-lg', isToday && 'text-primary')}>
+              {format(dateObj, 'd日')}
             </span>
-          )}
-          <span className="text-xs text-muted-foreground">
-            {format(dateObj, 'EE', { locale: zhCN })}·{lunarDay}
+            {adjustment && (
+              <span
+                className={cn(
+                  'absolute -top-1.75 -right-3 flex size-3.5 items-center justify-center rounded-full text-[8px] leading-none font-medium text-white',
+                  adjustment === 'work' ? 'bg-red-400' : 'bg-green-400',
+                )}
+              >
+                {adjustment === 'work' ? '班' : '休'}
+              </span>
+            )}
+          </div>
+          <span className={cn('text-xs', isFestival ? 'text-primary' : 'text-muted-foreground')}>
+            {format(dateObj, 'EE', { locale: zhCN })}·{lunarText}
           </span>
         </CardTitle>
         {hasData && (

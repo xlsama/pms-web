@@ -1,4 +1,8 @@
-import { isWorkday as isChineseWorkday } from 'chinese-days'
+import {
+  getDayDetail,
+  getLunarDate,
+  isWorkday as isChineseWorkday,
+} from 'chinese-days'
 import { isWeekend } from 'date-fns'
 
 import { UtStatus } from '@/types/ut'
@@ -39,6 +43,23 @@ export function getAdjustmentType(date: string): 'work' | 'rest' | null {
   if (workday && weekend) return 'work'
   if (!workday || weekend) return 'rest'
   return null
+}
+
+/**
+ * 获取日期的农历/节日标签
+ * 优先级：国定假日 > 农历日期
+ */
+export function getDateLabel(date: string): { text: string; isFestival: boolean } {
+  // 优先级 1: 国定假日
+  const detail = getDayDetail(date)
+  if (detail.name.includes(',')) {
+    return { text: detail.name.split(',')[1], isFestival: true }
+  }
+
+  // 优先级 2: 农历日期（初一显示月名，其他显示日期）
+  const lunar = getLunarDate(date)
+  const text = lunar.lunarDay === 1 ? lunar.lunarMonCN : lunar.lunarDayCN
+  return { text, isFestival: false }
 }
 
 /**

@@ -64,42 +64,44 @@ export function UtWeekView() {
   return (
     <div className="flex h-full flex-col">
       {/* Compact Header Card */}
-      <div className="m-4 mb-0 rounded-lg bg-muted/50 p-3">
-        {/* First row: Navigation + Date + Stats */}
-        <div className="flex items-center justify-between gap-2">
-          {/* Left: Navigation + Date */}
-          <div className="flex min-w-0 flex-1 items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 shrink-0"
-              onClick={() => navigateWeek(-1)}
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <div className="min-w-0 truncate text-sm font-medium">
-              {format(weekStart, 'M月d日', { locale: zhCN })} -{' '}
-              {format(weekEnd, 'M月d日', { locale: zhCN })}
+      <div className="sticky top-11.25 z-10 bg-background px-4 py-4">
+        <div className="rounded-lg bg-muted/50 p-3">
+          {/* First row: Navigation + Date + Stats */}
+          <div className="flex items-center justify-between gap-2">
+            {/* Left: Navigation + Date */}
+            <div className="flex min-w-0 flex-1 items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 shrink-0"
+                onClick={() => navigateWeek(-1)}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <div className="min-w-0 truncate text-sm font-medium">
+                {format(weekStart, 'M月d日', { locale: zhCN })} -{' '}
+                {format(weekEnd, 'M月d日', { locale: zhCN })}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 shrink-0"
+                onClick={() => navigateWeek(1)}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
             </div>
+
+            {/* Right: Today button */}
             <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 shrink-0"
-              onClick={() => navigateWeek(1)}
+              variant="outline"
+              size="sm"
+              className="h-7 shrink-0 px-3 text-sm"
+              onClick={goToToday}
             >
-              <ChevronRight className="size-4" />
+              本周
             </Button>
           </div>
-
-          {/* Right: Today button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 shrink-0 px-3 text-sm"
-            onClick={goToToday}
-          >
-            本周
-          </Button>
         </div>
       </div>
 
@@ -109,7 +111,7 @@ export function UtWeekView() {
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.2}
         onDragEnd={handleDragEnd}
-        className="flex-1 space-y-2 overflow-auto p-4"
+        className="flex-1 space-y-2 overflow-auto px-4 pb-4"
       >
         {weekDays.map(day => {
           const dateStr = format(day, 'yyyy-MM-dd')
