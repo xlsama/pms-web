@@ -1,27 +1,14 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import { Menu, Moon, Sun } from 'lucide-react'
 import { useMemo } from 'react'
 
 import { AppSidebar } from '@/components/app-sidebar'
 import { ModeToggle } from '@/components/theme-toggle'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
-import { useTheme } from '@/contexts/theme-provider'
 import { useCalendarData } from '@/hooks/use-ut'
 import { useAuthStore } from '@/stores/auth'
 import { useUtStore } from '@/stores/ut'
@@ -44,7 +31,6 @@ function AppLayout() {
     [currentDate],
   )
   const { stats, isPending } = useCalendarData(monthRange.start, monthRange.end)
-  const { setTheme } = useTheme()
 
   function handleDrop(project: Project, date: string): void {
     setSelectedDate(date)
@@ -92,37 +78,8 @@ function AppLayout() {
               )}
             </div>
 
-            {/* Desktop: show buttons */}
-            <div className="hidden items-center md:flex">
+            <div className="flex items-center">
               <ModeToggle />
-            </div>
-
-            {/* Mobile: dropdown menu */}
-            <div className="md:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Menu className="size-4" />
-                    <span className="sr-only">菜单</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <Sun className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-                      <Moon className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-                      <span className="ml-2">主题</span>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => setTheme('light')}>浅色</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setTheme('dark')}>深色</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setTheme('system')}>
-                        跟随系统
-                      </DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </header>
 
