@@ -49,7 +49,7 @@ export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDa
             )}
           </div>
           <span className={cn('text-xs', isFestival ? 'text-primary' : 'text-muted-foreground')}>
-            {format(dateObj, 'EE', { locale: zhCN })}·{lunarText}
+            {format(dateObj, 'EE', { locale: zhCN })} · {lunarText}
           </span>
         </CardTitle>
         {hasData && (
