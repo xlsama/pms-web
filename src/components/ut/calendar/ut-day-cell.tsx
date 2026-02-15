@@ -42,7 +42,7 @@ export function UtDayCell({ date, isCurrentMonth, isToday, dailyData }: UtDayCel
         </div>
         <span className={cn(
           'text-[10px]',
-          isFestival ? 'text-primary' : 'text-muted-foreground',
+          isFestival ? 'font-medium text-red-500' : 'text-muted-foreground',
           !isCurrentMonth && 'opacity-50',
         )}>
           {lunarText}

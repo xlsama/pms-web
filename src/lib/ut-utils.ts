@@ -50,16 +50,55 @@ export function getAdjustmentType(date: string): 'work' | 'rest' | null {
  * 优先级：国定假日 > 农历日期
  */
 export function getDateLabel(date: string): { text: string; isFestival: boolean } {
-  // 优先级 1: 国定假日
+  const lunar = getLunarDate(date)
+
+  // 优先级 1: 国定假日（仅在节日当天显示）
   const detail = getDayDetail(date)
   if (detail.name.includes(',')) {
-    return { text: detail.name.split(',')[1], isFestival: true }
+    const holidayName = detail.name.split(',')[1]
+    if (isCanonicalHolidayDate(date, holidayName, lunar)) {
+      return { text: holidayName, isFestival: true }
+    }
   }
 
   // 优先级 2: 农历日期（初一显示月名，其他显示日期）
-  const lunar = getLunarDate(date)
   const text = lunar.lunarDay === 1 ? lunar.lunarMonCN : lunar.lunarDayCN
   return { text, isFestival: false }
+}
+
+function isCanonicalHolidayDate(
+  date: string,
+  name: string,
+  lunar: ReturnType<typeof getLunarDate>,
+): boolean {
+  const d = new Date(date)
+  const m = d.getMonth() + 1
+  const day = d.getDate()
+
+  switch (name) {
+    case '元旦':
+      return m === 1 && day === 1
+    case '春节':
+      return lunar.lunarMon === 1 && lunar.lunarDay === 1
+    case '清明':
+      return m === 4 && day === getQingmingDay(d.getFullYear())
+    case '劳动节':
+      return m === 5 && day === 1
+    case '端午':
+      return lunar.lunarMon === 5 && lunar.lunarDay === 5
+    case '中秋':
+      return lunar.lunarMon === 8 && lunar.lunarDay === 15
+    case '国庆':
+      return m === 10 && day === 1
+    default:
+      return false
+  }
+}
+
+/** 21 世纪清明节气日期：floor(Y×0.2422+4.81) - floor(Y/4)，Y 为年份后两位 */
+function getQingmingDay(year: number): number {
+  const y = year % 100
+  return Math.floor(y * 0.2422 + 4.81) - Math.floor(y / 4)
 }
 
 /**
