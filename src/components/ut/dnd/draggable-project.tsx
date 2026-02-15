@@ -21,14 +21,16 @@ export function DraggableProject({ project }: DraggableProjectProps) {
     <div
       ref={setNodeRef}
       className={cn(
-        'flex cursor-grab items-center gap-2 rounded-md border bg-background px-2 py-1.5 transition-all hover:border-primary/50 hover:bg-accent',
+        'group flex cursor-grab items-center gap-2 rounded-md border bg-background px-2 py-1.5 transition-all hover:border-primary/50 hover:bg-accent',
         isDragging && 'opacity-50',
       )}
       {...listeners}
       {...attributes}
     >
-      <GripVertical className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-      <Folder className="size-4 text-primary" />
+      <div className="relative size-4 shrink-0">
+        <Folder className="absolute inset-0 size-4 text-primary transition-opacity group-hover:opacity-0" />
+        <GripVertical className="absolute inset-0 size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+      </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-medium">{project.name}</p>
         <p className="text-xs text-muted-foreground">剩余 {project.manDaysRemaining} UT</p>
