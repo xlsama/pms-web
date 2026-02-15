@@ -34,7 +34,7 @@ export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDa
       <CardHeader className="px-3">
         <CardTitle className="flex items-center gap-2">
           <div className="relative">
-            <span className={cn('text-lg', isToday && 'text-primary')}>
+            <span className={cn('text-lg whitespace-nowrap', isToday && 'text-primary')}>
               {format(dateObj, 'd日')}
             </span>
             {adjustment && (
