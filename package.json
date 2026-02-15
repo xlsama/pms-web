@@ -51,7 +51,7 @@
     "@tanstack/react-router": "^1.159.10",
     "@tanstack/react-router-devtools": "^1.159.10",
     "@tanstack/router-plugin": "^1.159.10",
-"ahooks": "^3.9.6",
+    "ahooks": "^3.9.6",
     "chinese-days": "^1.5.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
