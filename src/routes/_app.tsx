@@ -1,4 +1,4 @@
-import { Link, Outlet, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import { Menu, Moon, Sun } from 'lucide-react'
 import { useMemo } from 'react'
@@ -11,7 +11,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
+
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -45,7 +45,6 @@ function AppLayout() {
   )
   const { stats, isPending } = useCalendarData(monthRange.start, monthRange.end)
   const { setTheme } = useTheme()
-  const navigate = useNavigate()
 
   function handleDrop(project: Project, date: string): void {
     setSelectedDate(date)
@@ -95,10 +94,6 @@ function AppLayout() {
 
             {/* Desktop: show buttons */}
             <div className="hidden items-center md:flex">
-              <Button variant="link">
-                <Link to="/ut-tmp">UT模板</Link>
-              </Button>
-              <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
               <ModeToggle />
             </div>
 
@@ -112,10 +107,6 @@ function AppLayout() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate({ to: '/ut-tmp' })}>
-                    UT模板
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuSub>
                     <DropdownMenuSubTrigger>
                       <Sun className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />

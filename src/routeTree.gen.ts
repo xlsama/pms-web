@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
-import { Route as AppUtTmpRouteImport } from './routes/_app.ut-tmp'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -28,35 +27,27 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppUtTmpRoute = AppUtTmpRouteImport.update({
-  id: '/ut-tmp',
-  path: '/ut-tmp',
-  getParentRoute: () => AppRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
-  '/ut-tmp': typeof AppUtTmpRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/ut-tmp': typeof AppUtTmpRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
-  '/_app/ut-tmp': typeof AppUtTmpRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/ut-tmp'
+  fullPaths: '/' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/ut-tmp' | '/'
-  id: '__root__' | '/_app' | '/login' | '/_app/ut-tmp' | '/_app/'
+  to: '/login' | '/'
+  id: '__root__' | '/_app' | '/login' | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -87,23 +78,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/ut-tmp': {
-      id: '/_app/ut-tmp'
-      path: '/ut-tmp'
-      fullPath: '/ut-tmp'
-      preLoaderRoute: typeof AppUtTmpRouteImport
-      parentRoute: typeof AppRoute
-    }
   }
 }
 
 interface AppRouteChildren {
-  AppUtTmpRoute: typeof AppUtTmpRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppUtTmpRoute: AppUtTmpRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

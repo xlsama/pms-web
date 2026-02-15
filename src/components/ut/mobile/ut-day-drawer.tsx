@@ -22,7 +22,7 @@ export function UtDayDrawer({ open, onOpenChange, date, projects, dailyData }: U
         <DrawerHeader>
           <DrawerTitle>填写 UT</DrawerTitle>
         </DrawerHeader>
-        <div className="max-h-[60vh] overflow-auto p-4">
+        <div className="overflow-auto p-4">
           <UtForm
             date={date}
             projects={projects}
