@@ -8,13 +8,13 @@
   },
   "experimentalSortImports": {
     "groups": [
-      ["side-effect"],
-      ["builtin"],
-      ["external", "type-external"],
-      ["internal", "type-internal"],
-      ["parent", "type-parent"],
-      ["sibling", "type-sibling"],
-      ["index", "type-index"]
+      ["side_effect"],
+      ["value-builtin"],
+      ["value-external", "type-external"],
+      ["value-internal", "type-internal"],
+      ["value-parent", "type-parent"],
+      ["value-sibling", "type-sibling"],
+      ["value-index", "type-index"]
     ]
   },
   "ignorePatterns": ["public", "src/components/ui"]

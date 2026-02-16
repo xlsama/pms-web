@@ -1,4 +1,5 @@
 import { useDroppable } from '@dnd-kit/core'
+import { useKeyPress } from 'ahooks'
 import {
   eachDayOfInterval,
   endOfMonth,
@@ -12,7 +13,6 @@ import {
 } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useKeyPress } from 'ahooks'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -70,19 +70,29 @@ export function UtCalendar() {
     setCurrentDate(newDate)
   }
 
-  useKeyPress('leftarrow', (e) => {
-    const tag = (e.target as HTMLElement)?.tagName
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return
-    if (formOpen) return
-    navigateMonth(-1)
-  }, { exactMatch: true })
+  useKeyPress(
+    'leftarrow',
+    e => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable)
+        return
+      if (formOpen) return
+      navigateMonth(-1)
+    },
+    { exactMatch: true },
+  )
 
-  useKeyPress('rightarrow', (e) => {
-    const tag = (e.target as HTMLElement)?.tagName
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return
-    if (formOpen) return
-    navigateMonth(1)
-  }, { exactMatch: true })
+  useKeyPress(
+    'rightarrow',
+    e => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable)
+        return
+      if (formOpen) return
+      navigateMonth(1)
+    },
+    { exactMatch: true },
+  )
 
   function goToToday(): void {
     const today = new Date()

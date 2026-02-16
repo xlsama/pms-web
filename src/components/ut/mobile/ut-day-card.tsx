@@ -48,7 +48,12 @@ export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDa
               </span>
             )}
           </div>
-          <span className={cn('text-xs', isFestival ? 'font-medium text-red-500' : 'text-muted-foreground')}>
+          <span
+            className={cn(
+              'text-xs',
+              isFestival ? 'font-medium text-red-500' : 'text-muted-foreground',
+            )}
+          >
             {format(dateObj, 'EE', { locale: zhCN })} · {lunarText}
           </span>
         </CardTitle>

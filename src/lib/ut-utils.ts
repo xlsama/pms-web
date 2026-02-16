@@ -1,8 +1,4 @@
-import {
-  getDayDetail,
-  getLunarDate,
-  isWorkday as isChineseWorkday,
-} from 'chinese-days'
+import { getDayDetail, getLunarDate, isWorkday as isChineseWorkday } from 'chinese-days'
 import { isWeekend } from 'date-fns'
 
 import { UtStatus } from '@/types/ut'
