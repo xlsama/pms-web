@@ -4,7 +4,7 @@
   "categories": {
     "correctness": "off"
   },
-  "ignorePatterns": ["dist", "public", "src/components/ui"],
+  "ignorePatterns": ["dist", "public", ".claude", "src/components/ui"],
   "rules": {
     "for-direction": "error",
     "no-async-promise-executor": "error",

@@ -17,5 +17,5 @@
       ["value-index", "type-index"]
     ]
   },
-  "ignorePatterns": ["public", "src/components/ui"]
+  "ignorePatterns": ["public", ".claude", "src/components/ui"]
 }
