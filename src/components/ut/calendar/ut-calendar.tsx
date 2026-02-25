@@ -257,12 +257,12 @@ function DroppableDay({
       data-date={date}
       data-rest={isRest || undefined}
       className={cn(
-        'min-h-24 border-b border-r border-gray-200 p-1 transition-colors dark:border-gray-800',
+        'min-h-24 border-r border-b border-gray-200 p-1 transition-colors dark:border-gray-800',
         isRest ? 'cursor-not-allowed bg-muted/50' : 'cursor-pointer',
         !isRest && !isCurrentMonth && 'bg-muted/30',
         !isRest && weekend && 'bg-muted/20',
-        isOver && 'bg-primary/10 ring-1 ring-inset ring-gray-300',
-        isSelected && 'ring-1 ring-inset ring-gray-300',
+        isOver && 'bg-primary/10 ring-1 ring-gray-300 ring-inset',
+        isSelected && 'ring-1 ring-gray-300 ring-inset',
         isFlashing && 'animate-flash',
       )}
       onClick={isRest ? undefined : e => onClick(e.currentTarget)}

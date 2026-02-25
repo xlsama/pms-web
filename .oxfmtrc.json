@@ -3,19 +3,10 @@
   "semi": false,
   "singleQuote": true,
   "arrowParens": "avoid",
-  "experimentalTailwindcss": {
-    "stylesheet": "src/styles.css"
+  "sortTailwindcss": {
+    "stylesheet": "src/styles.css",
+    "functions": ["cn", "clsx", "cva"]
   },
-  "experimentalSortImports": {
-    "groups": [
-      ["side_effect"],
-      ["value-builtin"],
-      ["value-external", "type-external"],
-      ["value-internal", "type-internal"],
-      ["value-parent", "type-parent"],
-      ["value-sibling", "type-sibling"],
-      ["value-index", "type-index"]
-    ]
-  },
+  "sortImports": {},
   "ignorePatterns": ["public", ".claude", "src/components/ui"]
 }
