@@ -154,12 +154,8 @@ export function useSubmitUt() {
 
   return useMutation({
     mutationFn: (req: UpdateConsumeReq) => updateConsume(req),
-    onSuccess: (_data, variables) => {
-      // Only invalidate affected dates
-      const affectedDates = new Set(variables.list.map(item => item.date))
-      for (const date of affectedDates) {
-        queryClient.invalidateQueries({ queryKey: utKeys.day(date) })
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: utKeys.days() })
     },
   })
 }
