@@ -52,16 +52,16 @@ function AppLayout() {
         <AppSidebar />
         <SidebarInset>
           <header className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b bg-sidebar px-4 py-2">
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <SidebarTrigger />
               <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
               {isPending ? (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                   <Skeleton className="h-5 w-16 rounded-full" />
                   <Skeleton className="h-5 w-14 rounded-full" />
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                   <Badge className="border-transparent bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
                     剩余:
                     <span className="ml-0.5 font-semibold tabular-nums">
@@ -84,8 +84,7 @@ function AppLayout() {
                   )}
                   {unfilledUt > 0 && (
                     <Badge className="border-transparent bg-orange-100 px-2 py-0.5 text-xs text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
-                      <span className="sm:hidden">未填:</span>
-                      <span className="hidden sm:inline">{monthLabel}-未填UT:</span>
+                      {monthLabel}-未填UT:
                       <span className="ml-0.5 font-semibold tabular-nums">{unfilledUt}</span>
                     </Badge>
                   )}

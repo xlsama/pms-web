@@ -30,7 +30,9 @@ function computeDayStatus(records: Array<UtAllocation>, totalUt: number): DaySta
   if (records.length === 0) return 'empty'
   if (records.some(r => r.status === UtStatus.Rejected)) return 'rejected'
   if (records.some(r => r.status === UtStatus.Check)) return 'check'
-  if (records.every(r => r.status === UtStatus.Confirmed)) return 'confirmed'
+  if (records.every(r => r.status === UtStatus.Confirmed)) {
+    return totalUt >= 1 ? 'confirmed' : 'partial'
+  }
   if (totalUt >= 1) return 'complete'
   return 'partial'
 }
@@ -51,12 +53,15 @@ function buildDailyData(date: string, res: ConsumeRes): DailyData {
   const totalUt = records.reduce((sum, r) => sum + r.value, 0)
   const status = computeDayStatus(records, totalUt)
 
+  const allLocked = records.length > 0
+    && records.every(r => r.status === UtStatus.Confirmed || r.status === UtStatus.Check)
+
   return {
     date,
     records,
     totalUt,
     status,
-    editable: status !== 'confirmed',
+    editable: !(allLocked && totalUt >= 1),
     isWorkday: true,
     submitFlag: res.submitFlag,
   }

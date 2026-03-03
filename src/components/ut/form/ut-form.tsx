@@ -172,7 +172,11 @@ export function UtForm({
   }
 
   function resetAllocations(): void {
-    setAllocations(prev => prev.map(a => ({ ...a, value: 0 })))
+    setAllocations(prev =>
+      prev.map(a =>
+        a.status === UtStatus.Confirmed || a.status === UtStatus.Check ? a : { ...a, value: 0 },
+      ),
+    )
   }
 
   function handleSubmit(): void {
@@ -212,7 +216,7 @@ export function UtForm({
 
   // Check if status is confirmed (not editable)
   const hasConfirmed = existingAllocations.some(a => a.status === UtStatus.Confirmed)
-  const canEdit = editable && !hasConfirmed
+  const canEdit = editable
 
   if (projects.length === 0) {
     return <div className="py-8 text-center text-muted-foreground">暂无可用项目</div>
@@ -254,7 +258,7 @@ export function UtForm({
           <AllocationCard
             key={allocation.projectId}
             allocation={allocation}
-            disabled={!canEdit}
+            disabled={!canEdit || allocation.status === UtStatus.Confirmed || allocation.status === UtStatus.Check}
             maxValue={getMaxValue(allocation.projectId)}
             onChange={value => updateAllocation(allocation.projectId, value)}
           />
@@ -277,7 +281,7 @@ export function UtForm({
                     <AllocationCard
                       key={allocation.projectId}
                       allocation={allocation}
-                      disabled={!canEdit}
+                      disabled={!canEdit || allocation.status === UtStatus.Confirmed || allocation.status === UtStatus.Check}
                       maxValue={getMaxValue(allocation.projectId)}
                       onChange={value => updateAllocation(allocation.projectId, value)}
                     />
@@ -299,6 +303,9 @@ export function UtForm({
 
       {!canEdit && hasConfirmed && (
         <p className="text-center text-xs text-muted-foreground">已审批通过，不可修改</p>
+      )}
+      {!canEdit && !hasConfirmed && existingAllocations.some(a => a.status === UtStatus.Check) && (
+        <p className="text-center text-xs text-muted-foreground">审批中，不可修改</p>
       )}
     </div>
   )
