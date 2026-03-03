@@ -1,5 +1,5 @@
 import { getDayDetail, getLunarDate, isWorkday as isChineseWorkday } from 'chinese-days'
-import { isWeekend } from 'date-fns'
+import { eachDayOfInterval, format, isWeekend } from 'date-fns'
 
 import { UtStatus } from '@/types/ut'
 import type { DayStatus } from '@/types/ut'
@@ -30,6 +30,11 @@ export function isLeaveProject(name: string): boolean {
 /** 判断是否为工作日（含调休） */
 export function isWorkday(date: string): boolean {
   return isChineseWorkday(date)
+}
+
+/** 统计区间内所有工作日数量（不截断到今天） */
+export function countWorkdaysInRange(start: Date, end: Date): number {
+  return eachDayOfInterval({ start, end }).filter(d => isWorkday(format(d, 'yyyy-MM-dd'))).length
 }
 
 /** 调休类型：'work' = 调休上班（周末）, 'rest' = 周末或节假日休息, null = 普通工作日 */

@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
-import { endOfMonth, startOfMonth } from 'date-fns'
+import { endOfMonth, format, startOfMonth } from 'date-fns'
 import { useMemo } from 'react'
 
 import { AppSidebar } from '@/components/app-sidebar'
@@ -10,6 +10,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { Skeleton } from '@/components/ui/skeleton'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
 import { useCalendarData } from '@/hooks/use-ut'
+import { countWorkdaysInRange } from '@/lib/ut-utils'
 import { useAuthStore } from '@/stores/auth'
 import { useUtStore } from '@/stores/ut'
 import type { Project } from '@/types/ut'
@@ -30,7 +31,14 @@ function AppLayout() {
     () => ({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) }),
     [currentDate],
   )
-  const { stats, isPending } = useCalendarData(monthRange.start, monthRange.end)
+  const { dailyMap, stats, isPending } = useCalendarData(monthRange.start, monthRange.end)
+
+  const monthLabel = useMemo(() => format(currentDate, 'yyyy年M月'), [currentDate])
+  const unfilledUt = useMemo(() => {
+    const totalWorkdays = countWorkdaysInRange(monthRange.start, monthRange.end)
+    const filledUt = Array.from(dailyMap.values()).reduce((sum, d) => sum + d.totalUt, 0)
+    return Math.max(0, totalWorkdays - filledUt)
+  }, [monthRange.start, monthRange.end, dailyMap])
 
   function handleDrop(project: Project, date: string): void {
     setSelectedDate(date)
@@ -72,6 +80,13 @@ function AppLayout() {
                       <span className="ml-0.5 font-semibold tabular-nums">
                         {stats.rejectedCount}
                       </span>
+                    </Badge>
+                  )}
+                  {unfilledUt > 0 && (
+                    <Badge className="border-transparent bg-orange-100 px-2 py-0.5 text-xs text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
+                      <span className="sm:hidden">未填:</span>
+                      <span className="hidden sm:inline">{monthLabel}-未填UT:</span>
+                      <span className="ml-0.5 font-semibold tabular-nums">{unfilledUt}</span>
                     </Badge>
                   )}
                 </div>
