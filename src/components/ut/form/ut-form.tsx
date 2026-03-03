@@ -99,7 +99,8 @@ export function UtForm({
     const items = availableProjects.map(p => {
       const existing = existingMap.get(p.id)
       const isPrefilled = prefilledProject?.id === p.id
-      const defaultValue = isPrefilled && !existing ? 1 : 0
+      const maxDefault = Math.floor(p.manDaysRemaining * 10) / 10
+      const defaultValue = isPrefilled && !existing ? Math.min(1, maxDefault) : 0
 
       return {
         id: existing?.id,
@@ -150,10 +151,20 @@ export function UtForm({
   const isValid = roundedTotal === 1
 
   function getMaxValue(projectId: number): number {
+    // 当日剩余可分配额度
     const otherTotal = allocations
       .filter(a => a.projectId !== projectId)
       .reduce((sum, a) => sum + a.value, 0)
-    return Math.round((1 - otherTotal) * 10) / 10
+    const dailyMax = Math.round((1 - otherTotal) * 10) / 10
+
+    // 项目级剩余 UT（manDaysRemaining 已扣除今天的已有分配，需加回来）
+    const project = projects.find(p => p.id === projectId)
+    if (!project) return dailyMax
+
+    const existingValue = existingAllocations.find(a => a.projectId === projectId)?.value ?? 0
+    const projectMax = Math.round((project.manDaysRemaining + existingValue) * 10) / 10
+
+    return Math.min(dailyMax, projectMax)
   }
 
   function updateAllocation(projectId: number, value: number): void {
