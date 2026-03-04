@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
 import { useCalendarData } from '@/hooks/use-ut'
 import { countWorkdaysInRange } from '@/lib/ut-utils'
+import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth'
 import { useUtStore } from '@/stores/ut'
 import type { Project } from '@/types/ut'
@@ -26,7 +27,7 @@ export const Route = createFileRoute('/_app')({
 })
 
 function AppLayout() {
-  const { currentDate, setSelectedDate, setPrefilledProject, setFormOpen } = useUtStore()
+  const { currentDate, setSelectedDate, setPrefilledProject, setFormOpen, highlightUnfilled, setHighlightUnfilled } = useUtStore()
   const monthRange = useMemo(
     () => ({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) }),
     [currentDate],
@@ -83,7 +84,16 @@ function AppLayout() {
                     </Badge>
                   )}
                   {unfilledUt > 0 && (
-                    <Badge className="border-transparent bg-orange-100 px-2 py-0.5 text-xs text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
+                    <Badge
+                      className={cn(
+                        'cursor-pointer px-2 py-0.5 text-xs transition-colors',
+                        'hover:bg-orange-200/50 dark:hover:bg-orange-800/50',
+                        highlightUnfilled
+                          ? 'border-orange-200 bg-orange-100 text-orange-800 shadow-sm dark:border-orange-700 dark:bg-orange-800/50 dark:text-orange-200'
+                          : 'border-transparent bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300',
+                      )}
+                      onClick={() => setHighlightUnfilled(!highlightUnfilled)}
+                    >
                       {monthLabel}-未填UT:
                       <span className="ml-0.5 font-semibold tabular-nums">{unfilledUt}</span>
                     </Badge>

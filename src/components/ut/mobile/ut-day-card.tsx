@@ -10,11 +10,12 @@ interface UtDayCardProps {
   date: string
   isToday: boolean
   isWeekend: boolean
+  isUnfilled?: boolean
   dailyData?: DailyData
   onClick: () => void
 }
 
-export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDayCardProps) {
+export function UtDayCard({ date, isToday, isWeekend, isUnfilled, dailyData, onClick }: UtDayCardProps) {
   const dateObj = new Date(date)
   const hasData = dailyData && dailyData.records.length > 0
   const adjustment = getAdjustmentType(date)
@@ -28,6 +29,7 @@ export function UtDayCard({ date, isToday, isWeekend, dailyData, onClick }: UtDa
           ? 'cursor-not-allowed bg-muted/50 dark:bg-muted'
           : 'cursor-pointer hover:border-primary/50',
         isToday && 'ring-2 ring-primary',
+        isUnfilled && adjustment !== 'rest' && 'bg-orange-50 dark:bg-orange-950/20',
       )}
       onClick={adjustment === 'rest' ? undefined : onClick}
     >

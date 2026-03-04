@@ -26,11 +26,15 @@ interface UtState {
   // Flash date for visual feedback
   flashDate: string | null
   setFlashDate: (date: string | null) => void
+
+  // Highlight unfilled dates on calendar
+  highlightUnfilled: boolean
+  setHighlightUnfilled: (highlight: boolean) => void
 }
 
 export const useUtStore = create<UtState>()(set => ({
   currentDate: new Date(),
-  setCurrentDate: date => set({ currentDate: date }),
+  setCurrentDate: date => set({ currentDate: date, highlightUnfilled: false }),
 
   selectedDate: null,
   setSelectedDate: selectedDate => set({ selectedDate }),
@@ -46,4 +50,7 @@ export const useUtStore = create<UtState>()(set => ({
 
   flashDate: null,
   setFlashDate: flashDate => set({ flashDate }),
+
+  highlightUnfilled: false,
+  setHighlightUnfilled: highlightUnfilled => set({ highlightUnfilled }),
 }))

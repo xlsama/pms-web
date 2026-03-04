@@ -16,13 +16,14 @@ import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { useCalendarData } from '@/hooks/use-ut'
+import { isWorkday } from '@/lib/ut-utils'
 import { useUtStore } from '@/stores/ut'
 
 import { UtDayCard } from './ut-day-card'
 import { UtDayDrawer } from './ut-day-drawer'
 
 export function UtWeekView() {
-  const { currentDate, setCurrentDate, selectedDate, setSelectedDate } = useUtStore()
+  const { currentDate, setCurrentDate, selectedDate, setSelectedDate, highlightUnfilled } = useUtStore()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
@@ -116,6 +117,7 @@ export function UtWeekView() {
         {weekDays.map(day => {
           const dateStr = format(day, 'yyyy-MM-dd')
           const dailyData = dailyMap.get(dateStr)
+          const isUnfilled = highlightUnfilled && !isWeekend(day) && isWorkday(dateStr) && (!dailyData || dailyData.totalUt < 1)
 
           return (
             <UtDayCard
@@ -123,6 +125,7 @@ export function UtWeekView() {
               date={dateStr}
               isToday={isToday(day)}
               isWeekend={isWeekend(day)}
+              isUnfilled={isUnfilled}
               dailyData={dailyData}
               onClick={() => handleDayClick(dateStr)}
             />

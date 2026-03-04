@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { useCalendarData } from '@/hooks/use-ut'
-import { getAdjustmentType } from '@/lib/ut-utils'
+import { getAdjustmentType, isWorkday } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
 import { useUtStore } from '@/stores/ut'
 import type { DailyData } from '@/types/ut'
@@ -38,6 +38,7 @@ export function UtCalendar() {
     setFormOpen,
     flashDate,
     setFlashDate,
+    highlightUnfilled,
   } = useUtStore()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
 
@@ -63,6 +64,21 @@ export function UtCalendar() {
   }, [currentDate])
 
   const { dailyMap, projects } = useCalendarData(calendarStart, calendarEnd)
+
+  const unfilledDates = useMemo(() => {
+    if (!highlightUnfilled) return new Set<string>()
+    const monthStart = startOfMonth(currentDate)
+    const monthEnd = endOfMonth(currentDate)
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
+    const set = new Set<string>()
+    for (const day of days) {
+      const dateStr = format(day, 'yyyy-MM-dd')
+      if (!isWorkday(dateStr)) continue
+      const d = dailyMap.get(dateStr)
+      if (!d || d.totalUt < 1) set.add(dateStr)
+    }
+    return set
+  }, [highlightUnfilled, currentDate, dailyMap])
 
   function navigateMonth(delta: number): void {
     const newDate = new Date(currentDate)
@@ -188,6 +204,7 @@ export function UtCalendar() {
               isSelected={selectedDate === dateStr}
               isFlashing={flashDate === dateStr}
               onFlashEnd={handleFlashEnd}
+              isUnfilled={unfilledDates.has(dateStr)}
             />
           )
         })}
@@ -218,6 +235,7 @@ interface DroppableDayProps {
   isSelected: boolean
   isFlashing: boolean
   onFlashEnd: () => void
+  isUnfilled: boolean
 }
 
 function DroppableDay({
@@ -230,6 +248,7 @@ function DroppableDay({
   isSelected,
   isFlashing,
   onFlashEnd,
+  isUnfilled,
 }: DroppableDayProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: `day-${date}`,
@@ -264,6 +283,7 @@ function DroppableDay({
         isOver && 'bg-primary/10 ring-1 ring-gray-300 ring-inset',
         isSelected && 'ring-1 ring-gray-300 ring-inset',
         isFlashing && 'animate-flash',
+        isUnfilled && 'bg-orange-50/60 dark:bg-orange-950/10',
       )}
       onClick={isRest ? undefined : e => onClick(e.currentTarget)}
     >
