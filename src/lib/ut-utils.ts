@@ -2,7 +2,6 @@ import { getDayDetail, getLunarDate, isWorkday as isChineseWorkday } from 'chine
 import { eachDayOfInterval, format, isWeekend } from 'date-fns'
 
 import { UtStatus } from '@/types/ut'
-import type { DayStatus } from '@/types/ut'
 
 /**
  * Get status color class for UT allocation badge
@@ -100,25 +99,4 @@ function isCanonicalHolidayDate(
 function getQingmingDay(year: number): number {
   const y = year % 100
   return Math.floor(y * 0.2422 + 4.81) - Math.floor(y / 4)
-}
-
-/**
- * Get background color class for calendar cell based on DayStatus
- */
-export function getDayStatusColorClass(status: DayStatus): string {
-  switch (status) {
-    case 'confirmed':
-      return 'bg-green-50 dark:bg-green-950/30'
-    case 'complete':
-      return 'bg-blue-50 dark:bg-blue-950/30'
-    case 'check':
-      return 'bg-yellow-50 dark:bg-yellow-950/30'
-    case 'rejected':
-      return 'bg-red-50 dark:bg-red-950/30'
-    case 'partial':
-      return 'bg-orange-50 dark:bg-orange-950/30'
-    case 'empty':
-    default:
-      return ''
-  }
 }
