@@ -31,11 +31,11 @@ export function UtDayCard({
   return (
     <Card
       className={cn(
-        'gap-2 py-3 transition-all',
+        'min-h-[85px] gap-2 py-3 transition-all border-border/50 shadow-none dark:border-border/30',
         adjustment === 'rest'
           ? 'cursor-not-allowed bg-muted/50 dark:bg-muted'
-          : 'cursor-pointer hover:border-primary/50',
-        isToday && 'ring-2 ring-primary',
+          : 'cursor-pointer hover:border-primary/30',
+        isToday && 'ring-1 ring-primary/40 dark:ring-primary/30',
         isUnfilled && adjustment !== 'rest' && 'bg-orange-50/60 dark:bg-orange-500/10',
       )}
       onClick={adjustment === 'rest' ? undefined : onClick}
@@ -59,8 +59,8 @@ export function UtDayCard({
           </div>
           <span
             className={cn(
-              'text-xs',
-              isFestival ? 'font-medium text-red-500' : 'text-muted-foreground',
+              'text-xs font-medium',
+              isFestival ? 'text-red-500' : 'text-muted-foreground',
             )}
           >
             {format(dateObj, 'EE', { locale: zhCN })} · {lunarText}
@@ -80,20 +80,18 @@ export function UtDayCard({
         )}
       </CardHeader>
 
-      <CardContent className="px-3">
-        {hasData ? (
+      {hasData && (
+        <CardContent className="px-3">
           <div className="space-y-1">
             {dailyData.records.map((record, i) => (
-              <div key={i} className="flex items-center justify-between gap-2 text-sm">
+              <div key={i} className="flex items-center justify-between gap-2 text-xs">
                 <span className="truncate">{record.projectName}</span>
-                <span className="shrink-0 font-medium">{record.value} UT</span>
+                <span className="shrink-0 text-xs text-muted-foreground">{record.value} UT</span>
               </div>
             ))}
           </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">{isWeekend ? '休息日' : '点击填写'}</p>
-        )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   )
 }
