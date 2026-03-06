@@ -284,7 +284,7 @@ function DroppableDay({
         isOver && 'bg-primary/10 ring-1 ring-gray-300 ring-inset',
         isSelected && 'ring-1 ring-gray-300 ring-inset',
         isFlashing && 'animate-flash',
-        isUnfilled && 'bg-orange-50/60 dark:bg-orange-950/10',
+        isUnfilled && 'bg-orange-50/60 dark:bg-orange-500/10',
       )}
       onClick={isRest ? undefined : e => onClick(e.currentTarget)}
     >
