@@ -36,7 +36,7 @@ export function UtDayCard({
           ? 'cursor-not-allowed bg-muted/50 dark:bg-muted'
           : 'cursor-pointer hover:border-primary/50',
         isToday && 'ring-2 ring-primary',
-        isUnfilled && adjustment !== 'rest' && 'bg-orange-50 dark:bg-orange-950/20',
+        isUnfilled && adjustment !== 'rest' && 'bg-orange-50 dark:bg-orange-500/10',
       )}
       onClick={adjustment === 'rest' ? undefined : onClick}
     >
