@@ -129,7 +129,6 @@ export function UtWeekView() {
               key={dateStr}
               date={dateStr}
               isToday={isToday(day)}
-              isWeekend={isWeekend(day)}
               isUnfilled={isUnfilled}
               dailyData={dailyData}
               onClick={() => handleDayClick(dateStr)}

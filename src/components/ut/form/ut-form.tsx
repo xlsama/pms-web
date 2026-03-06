@@ -60,7 +60,9 @@ function AllocationCard({
       <div className="flex min-w-0 items-center justify-between gap-2">
         <span className="truncate text-sm font-medium">{allocation.projectName}</span>
         {allocation.value > 0 && (
-          <span className="shrink-0 text-[13px] font-medium text-primary">{allocation.value} UT</span>
+          <span className="shrink-0 text-[13px] font-medium text-primary">
+            {allocation.value} UT
+          </span>
         )}
       </div>
 

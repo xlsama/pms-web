@@ -9,20 +9,12 @@ import type { DailyData } from '@/types/ut'
 interface UtDayCardProps {
   date: string
   isToday: boolean
-  isWeekend: boolean
   isUnfilled?: boolean
   dailyData?: DailyData
   onClick: () => void
 }
 
-export function UtDayCard({
-  date,
-  isToday,
-  isWeekend,
-  isUnfilled,
-  dailyData,
-  onClick,
-}: UtDayCardProps) {
+export function UtDayCard({ date, isToday, isUnfilled, dailyData, onClick }: UtDayCardProps) {
   const dateObj = new Date(date)
   const hasData = dailyData && dailyData.records.length > 0
   const adjustment = getAdjustmentType(date)
@@ -31,7 +23,7 @@ export function UtDayCard({
   return (
     <Card
       className={cn(
-        'min-h-[85px] gap-2 py-3 transition-all border-border/50 shadow-none dark:border-border/30',
+        'min-h-[85px] gap-2 border-border/50 py-3 shadow-none transition-all dark:border-border/30',
         adjustment === 'rest'
           ? 'cursor-not-allowed bg-muted/50 dark:bg-muted'
           : 'cursor-pointer hover:border-primary/30',
