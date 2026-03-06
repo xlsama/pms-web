@@ -108,15 +108,15 @@ function getQingmingDay(year: number): number {
 export function getDayStatusColorClass(status: DayStatus): string {
   switch (status) {
     case 'confirmed':
-      return 'bg-green-50 dark:bg-green-950/30'
+      return 'bg-green-50 dark:bg-green-900/40'
     case 'complete':
-      return 'bg-blue-50 dark:bg-blue-950/30'
+      return 'bg-blue-50 dark:bg-blue-900/40'
     case 'check':
-      return 'bg-yellow-50 dark:bg-yellow-950/30'
+      return 'bg-yellow-50 dark:bg-yellow-900/40'
     case 'rejected':
-      return 'bg-red-50 dark:bg-red-950/30'
+      return 'bg-red-50 dark:bg-red-900/40'
     case 'partial':
-      return 'bg-orange-50 dark:bg-orange-950/30'
+      return 'bg-orange-50 dark:bg-orange-900/40'
     case 'empty':
     default:
       return ''
