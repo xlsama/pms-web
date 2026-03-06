@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
+import { RejectedUtDialog } from '@/components/ut/rejected-ut-dialog'
 import { useCalendarData } from '@/hooks/use-ut'
 import { countWorkdaysInRange } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
@@ -93,12 +94,7 @@ function AppLayout() {
                     </span>
                   </Badge>
                   {stats.rejectedCount > 0 && (
-                    <Badge className="border-transparent bg-red-100 px-2 py-0.5 text-xs text-red-700 dark:bg-red-900/50 dark:text-red-300">
-                      驳回:
-                      <span className="ml-0.5 font-semibold tabular-nums">
-                        {stats.rejectedCount}
-                      </span>
-                    </Badge>
+                    <RejectedUtDialog rejectedCount={stats.rejectedCount} />
                   )}
                 </div>
               )}
