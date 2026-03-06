@@ -40,7 +40,7 @@ function AppLayout() {
     const end = monthRange.end > today ? today : monthRange.end
     const totalWorkdays = countWorkdaysInRange(monthRange.start, end)
     const filledUt = Array.from(dailyMap.values()).reduce((sum, d) => sum + d.totalUt, 0)
-    return Math.max(0, totalWorkdays - filledUt)
+    return Math.round(Math.max(0, totalWorkdays - filledUt) * 10) / 10
   }, [monthRange.start, monthRange.end, dailyMap])
 
   function handleDrop(project: Project, date: string): void {
