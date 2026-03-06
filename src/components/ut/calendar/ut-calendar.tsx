@@ -68,7 +68,8 @@ export function UtCalendar() {
   const unfilledDates = useMemo(() => {
     if (!highlightUnfilled) return new Set<string>()
     const monthStart = startOfMonth(currentDate)
-    const monthEnd = endOfMonth(currentDate)
+    const today = new Date()
+    const monthEnd = endOfMonth(currentDate) > today ? today : endOfMonth(currentDate)
     const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
     const set = new Set<string>()
     for (const day of days) {

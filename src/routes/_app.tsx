@@ -36,7 +36,9 @@ function AppLayout() {
 
   const monthLabel = useMemo(() => format(currentDate, 'yyyy年M月'), [currentDate])
   const unfilledUt = useMemo(() => {
-    const totalWorkdays = countWorkdaysInRange(monthRange.start, monthRange.end)
+    const today = new Date()
+    const end = monthRange.end > today ? today : monthRange.end
+    const totalWorkdays = countWorkdaysInRange(monthRange.start, end)
     const filledUt = Array.from(dailyMap.values()).reduce((sum, d) => sum + d.totalUt, 0)
     return Math.max(0, totalWorkdays - filledUt)
   }, [monthRange.start, monthRange.end, dailyMap])
@@ -63,26 +65,6 @@ function AppLayout() {
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                  <Badge className="border-transparent bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                    剩余:
-                    <span className="ml-0.5 font-semibold tabular-nums">
-                      {stats.totalManDaysRemaining}
-                    </span>
-                  </Badge>
-                  {stats.checkCount > 0 && (
-                    <Badge className="border-transparent bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300">
-                      待审:
-                      <span className="ml-0.5 font-semibold tabular-nums">{stats.checkCount}</span>
-                    </Badge>
-                  )}
-                  {stats.rejectedCount > 0 && (
-                    <Badge className="border-transparent bg-red-100 px-2 py-0.5 text-xs text-red-700 dark:bg-red-900/50 dark:text-red-300">
-                      驳回:
-                      <span className="ml-0.5 font-semibold tabular-nums">
-                        {stats.rejectedCount}
-                      </span>
-                    </Badge>
-                  )}
                   {unfilledUt > 0 && (
                     <Badge
                       className={cn(
@@ -96,6 +78,26 @@ function AppLayout() {
                     >
                       {monthLabel}-未填UT:
                       <span className="ml-0.5 font-semibold tabular-nums">{unfilledUt}</span>
+                    </Badge>
+                  )}
+                  {stats.checkCount > 0 && (
+                    <Badge className="border-transparent bg-yellow-100 px-2 py-0.5 text-xs text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300">
+                      待审:
+                      <span className="ml-0.5 font-semibold tabular-nums">{stats.checkCount}</span>
+                    </Badge>
+                  )}
+                  <Badge className="border-transparent bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+                    剩余:
+                    <span className="ml-0.5 font-semibold tabular-nums">
+                      {stats.totalManDaysRemaining}
+                    </span>
+                  </Badge>
+                  {stats.rejectedCount > 0 && (
+                    <Badge className="border-transparent bg-red-100 px-2 py-0.5 text-xs text-red-700 dark:bg-red-900/50 dark:text-red-300">
+                      驳回:
+                      <span className="ml-0.5 font-semibold tabular-nums">
+                        {stats.rejectedCount}
+                      </span>
                     </Badge>
                   )}
                 </div>
