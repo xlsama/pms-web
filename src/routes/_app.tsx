@@ -28,7 +28,14 @@ export const Route = createFileRoute('/_app')({
 })
 
 function AppLayout() {
-  const { currentDate, setSelectedDate, setPrefilledProject, setFormOpen, highlightUnfilled, setHighlightUnfilled } = useUtStore()
+  const {
+    currentDate,
+    setSelectedDate,
+    setPrefilledProject,
+    setFormOpen,
+    highlightUnfilled,
+    setHighlightUnfilled,
+  } = useUtStore()
   const monthRange = useMemo(
     () => ({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) }),
     [currentDate],
@@ -60,12 +67,12 @@ function AppLayout() {
               <SidebarTrigger />
               <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
               {isPending ? (
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto">
                   <Skeleton className="h-5 w-16 rounded-full" />
                   <Skeleton className="h-5 w-14 rounded-full" />
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto">
                   {unfilledUt > 0 && (
                     <Badge
                       className={cn(

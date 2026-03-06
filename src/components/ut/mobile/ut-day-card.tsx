@@ -15,7 +15,14 @@ interface UtDayCardProps {
   onClick: () => void
 }
 
-export function UtDayCard({ date, isToday, isWeekend, isUnfilled, dailyData, onClick }: UtDayCardProps) {
+export function UtDayCard({
+  date,
+  isToday,
+  isWeekend,
+  isUnfilled,
+  dailyData,
+  onClick,
+}: UtDayCardProps) {
   const dateObj = new Date(date)
   const hasData = dailyData && dailyData.records.length > 0
   const adjustment = getAdjustmentType(date)

@@ -258,7 +258,11 @@ export function UtForm({
           <AllocationCard
             key={allocation.projectId}
             allocation={allocation}
-            disabled={!canEdit || allocation.status === UtStatus.Confirmed || allocation.status === UtStatus.Check}
+            disabled={
+              !canEdit ||
+              allocation.status === UtStatus.Confirmed ||
+              allocation.status === UtStatus.Check
+            }
             maxValue={getMaxValue(allocation.projectId)}
             onChange={value => updateAllocation(allocation.projectId, value)}
           />
@@ -281,7 +285,11 @@ export function UtForm({
                     <AllocationCard
                       key={allocation.projectId}
                       allocation={allocation}
-                      disabled={!canEdit || allocation.status === UtStatus.Confirmed || allocation.status === UtStatus.Check}
+                      disabled={
+                        !canEdit ||
+                        allocation.status === UtStatus.Confirmed ||
+                        allocation.status === UtStatus.Check
+                      }
                       maxValue={getMaxValue(allocation.projectId)}
                       onChange={value => updateAllocation(allocation.projectId, value)}
                     />

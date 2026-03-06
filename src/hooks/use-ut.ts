@@ -53,8 +53,9 @@ function buildDailyData(date: string, res: ConsumeRes): DailyData {
   const totalUt = records.reduce((sum, r) => sum + r.value, 0)
   const status = computeDayStatus(records, totalUt)
 
-  const allLocked = records.length > 0
-    && records.every(r => r.status === UtStatus.Confirmed || r.status === UtStatus.Check)
+  const allLocked =
+    records.length > 0 &&
+    records.every(r => r.status === UtStatus.Confirmed || r.status === UtStatus.Check)
 
   return {
     date,

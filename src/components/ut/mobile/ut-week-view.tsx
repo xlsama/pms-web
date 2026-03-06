@@ -23,7 +23,8 @@ import { UtDayCard } from './ut-day-card'
 import { UtDayDrawer } from './ut-day-drawer'
 
 export function UtWeekView() {
-  const { currentDate, setCurrentDate, selectedDate, setSelectedDate, highlightUnfilled } = useUtStore()
+  const { currentDate, setCurrentDate, selectedDate, setSelectedDate, highlightUnfilled } =
+    useUtStore()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 })
@@ -117,7 +118,11 @@ export function UtWeekView() {
         {weekDays.map(day => {
           const dateStr = format(day, 'yyyy-MM-dd')
           const dailyData = dailyMap.get(dateStr)
-          const isUnfilled = highlightUnfilled && !isWeekend(day) && isWorkday(dateStr) && (!dailyData || dailyData.totalUt < 1)
+          const isUnfilled =
+            highlightUnfilled &&
+            !isWeekend(day) &&
+            isWorkday(dateStr) &&
+            (!dailyData || dailyData.totalUt < 1)
 
           return (
             <UtDayCard
