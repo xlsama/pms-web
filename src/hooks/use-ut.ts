@@ -50,7 +50,7 @@ function buildDailyData(date: string, res: ConsumeRes): DailyData {
       type: item.type,
     }))
 
-  const totalUt = records.reduce((sum, r) => sum + r.value, 0)
+  const totalUt = Math.round(records.reduce((sum, r) => sum + r.value, 0) * 10) / 10
   const status = computeDayStatus(records, totalUt)
 
   const allLocked =

@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { useCalendarData } from '@/hooks/use-ut'
-import { getAdjustmentType, isWorkday } from '@/lib/ut-utils'
+import { getAdjustmentType, isFutureDate, isWorkday } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
 import { useUtStore } from '@/stores/ut'
 import type { DailyData } from '@/types/ut'
@@ -270,23 +270,23 @@ function DroppableDay({
 
   const adjustment = getAdjustmentType(date)
   const isRest = adjustment === 'rest'
+  const isDisabled = isRest || isFutureDate(date)
 
   return (
     <div
       ref={setNodeRef}
       data-date={date}
-      data-rest={isRest || undefined}
+      data-rest={isDisabled || undefined}
       className={cn(
         'min-h-24 border-r border-b border-gray-200 p-1 transition-colors dark:border-gray-800',
-        isRest ? 'cursor-not-allowed bg-muted/50' : 'cursor-pointer',
-        !isRest && !isCurrentMonth && 'bg-muted/30',
-        !isRest && weekend && 'bg-muted/20',
-        isOver && 'bg-primary/10 ring-1 ring-gray-300 ring-inset',
+        isDisabled ? 'cursor-not-allowed bg-muted/50' : 'cursor-pointer',
+        !isDisabled && weekend && 'bg-muted/20',
+        isOver && !isDisabled && 'bg-primary/10 ring-1 ring-gray-300 ring-inset',
         isSelected && 'ring-1 ring-gray-300 ring-inset',
         isFlashing && 'animate-flash',
-        isUnfilled && 'bg-orange-50/60 dark:bg-orange-500/10',
+        !isDisabled && isUnfilled && 'bg-orange-50/60 dark:bg-orange-500/10',
       )}
-      onClick={isRest ? undefined : e => onClick(e.currentTarget)}
+      onClick={isDisabled ? undefined : e => onClick(e.currentTarget)}
     >
       <UtDayCell
         date={date}

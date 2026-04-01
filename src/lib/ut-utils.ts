@@ -36,6 +36,12 @@ export function countWorkdaysInRange(start: Date, end: Date): number {
   return eachDayOfInterval({ start, end }).filter(d => isWorkday(format(d, 'yyyy-MM-dd'))).length
 }
 
+/** 判断日期是否为未来日期（严格晚于今天） */
+export function isFutureDate(date: string): boolean {
+  const today = format(new Date(), 'yyyy-MM-dd')
+  return date > today
+}
+
 /** 调休类型：'work' = 调休上班（周末）, 'rest' = 周末或节假日休息, null = 普通工作日 */
 export function getAdjustmentType(date: string): 'work' | 'rest' | null {
   const workday = isChineseWorkday(date)

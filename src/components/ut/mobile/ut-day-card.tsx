@@ -2,7 +2,7 @@ import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getAdjustmentType, getDateLabel } from '@/lib/ut-utils'
+import { getAdjustmentType, getDateLabel, isFutureDate } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
 import type { DailyData } from '@/types/ut'
 
@@ -18,19 +18,20 @@ export function UtDayCard({ date, isToday, isUnfilled, dailyData, onClick }: UtD
   const dateObj = new Date(date)
   const hasData = dailyData && dailyData.records.length > 0
   const adjustment = getAdjustmentType(date)
+  const isDisabled = adjustment === 'rest' || isFutureDate(date)
   const { text: lunarText, isFestival } = getDateLabel(date)
 
   return (
     <Card
       className={cn(
         'min-h-[85px] gap-2 border-border/50 py-3 shadow-none transition-all dark:border-border/30',
-        adjustment === 'rest'
+        isDisabled
           ? 'cursor-not-allowed bg-muted/50 dark:bg-muted'
           : 'cursor-pointer hover:border-primary/30',
         isToday && 'ring-1 ring-primary/40 dark:ring-primary/30',
-        isUnfilled && adjustment !== 'rest' && 'bg-orange-50/60 dark:bg-orange-500/10',
+        isUnfilled && !isDisabled && 'bg-orange-50/60 dark:bg-orange-500/10',
       )}
-      onClick={adjustment === 'rest' ? undefined : onClick}
+      onClick={isDisabled ? undefined : onClick}
     >
       <CardHeader className="px-3">
         <CardTitle className="flex items-center gap-2">
