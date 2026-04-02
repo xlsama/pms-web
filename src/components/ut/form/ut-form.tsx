@@ -220,6 +220,20 @@ export function UtForm({
   const hasConfirmed = existingAllocations.some(a => a.status === UtStatus.Confirmed)
   const canEdit = editable
 
+  useEffect(() => {
+    if (!canEdit) return
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Enter' && isValid && !submitUt.isPending) {
+        e.preventDefault()
+        handleSubmit()
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  })
+
   if (projects.length === 0) {
     return <div className="py-8 text-center text-muted-foreground">暂无可用项目</div>
   }
