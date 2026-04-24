@@ -17,14 +17,14 @@ export default defineConfig({
       functions: ['cn', 'clsx', 'cva'],
     },
     sortImports: {},
-    ignorePatterns: ['public', '.claude', 'src/components/ui'],
+    ignorePatterns: ['public', '.claude', 'skills', 'src/components/ui'],
   },
   lint: {
     plugins: ['typescript', 'import'],
     categories: {
       correctness: 'off',
     },
-    ignorePatterns: ['dist', 'public', '.claude', 'src/components/ui'],
+    ignorePatterns: ['dist', 'public', '.claude', 'skills', 'src/components/ui'],
     rules: {
       'for-direction': 'error',
       'no-async-promise-executor': 'error',
