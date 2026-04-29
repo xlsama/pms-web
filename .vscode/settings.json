@@ -15,5 +15,6 @@
     "**/routeTree.gen.ts": true
   },
   "oxc.fmt.configPath": "./vite.config.ts",
-  "editor.formatOnSaveMode": "file"
+  "editor.formatOnSaveMode": "file",
+  "typescript.native-preview.tsdk": "/Users/xlsama/w/pms/node_modules/@typescript/native-preview"
 }
