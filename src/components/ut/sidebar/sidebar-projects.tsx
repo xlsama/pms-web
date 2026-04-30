@@ -35,6 +35,7 @@ export function SidebarProjects() {
         regular.push(p)
       }
     }
+    regular.sort((a, b) => b.manDaysRemaining - a.manDaysRemaining)
     return { regularProjects: regular, leaveProjects: leave }
   }, [projects])
 
