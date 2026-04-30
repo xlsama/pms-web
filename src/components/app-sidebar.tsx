@@ -41,7 +41,7 @@ export function AppSidebar() {
     <Sidebar variant="inset">
       <SidebarHeader>
         <Link to="/">
-          <img src="/logo.png" className="mx-auto w-1/2" />
+          <img src="/logo.svg" alt="PMS" className="mx-auto w-1/2" />
         </Link>
       </SidebarHeader>
       <SidebarContent>

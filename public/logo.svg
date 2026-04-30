@@ -1,0 +1,60 @@
+<svg width="880" height="314" viewBox="0 0 880 314" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">PMS</title>
+  <desc id="desc">PMS wordmark for UT time tracking and project workflow.</desc>
+  <defs>
+    <linearGradient id="pms-wordmark" x1="31" y1="251" x2="820" y2="55" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2742B8"/>
+      <stop offset="0.45" stop-color="#1682D4"/>
+      <stop offset="1" stop-color="#38DCE3"/>
+    </linearGradient>
+    <linearGradient id="pms-underline" x1="92" y1="266" x2="772" y2="266" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2F49C8" stop-opacity="0"/>
+      <stop offset="0.2" stop-color="#2F49C8"/>
+      <stop offset="0.76" stop-color="#26D1DF"/>
+      <stop offset="1" stop-color="#26D1DF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="pms-shine" x1="111" y1="66" x2="548" y2="226" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.58"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="pms-shadow" x="14" y="35" width="827" height="239" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#0B315F" flood-opacity="0.14"/>
+    </filter>
+    <clipPath id="pms-clip">
+      <text
+        x="35"
+        y="226"
+        transform="matrix(1.42 0 -0.1405 1 0 0)"
+        font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+        font-size="220"
+        font-weight="900"
+      >PMS</text>
+    </clipPath>
+  </defs>
+
+  <g filter="url(#pms-shadow)">
+    <text
+      x="35"
+      y="226"
+      transform="matrix(1.42 0 -0.1405 1 0 0)"
+      font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+      font-size="220"
+      font-weight="900"
+      fill="url(#pms-wordmark)"
+    >PMS</text>
+  </g>
+
+  <g clip-path="url(#pms-clip)">
+    <path d="M54 242L336 47" stroke="url(#pms-shine)" stroke-width="54" stroke-linecap="round"/>
+    <path d="M353 225C418 161 470 128 532 126C590 124 635 150 699 95" stroke="#8AF7FF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.32"/>
+    <g transform="translate(346 72) skewX(-8)" opacity="0.22">
+      <rect x="0" y="0" width="132" height="116" rx="16" stroke="#FFFFFF" stroke-width="8"/>
+      <path d="M0 35H132" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+      <path d="M43 35V116M87 35V116" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+      <path d="M0 76H132" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <path d="M92 266H772" stroke="url(#pms-underline)" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="786" cy="266" r="8" fill="#35D9E5"/>
+</svg>
