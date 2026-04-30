@@ -134,6 +134,102 @@
   }
 }
 
+@layer components {
+  .login-company-mark {
+    position: absolute;
+    top: clamp(1.25rem, 2.6vw, 2rem);
+    left: clamp(1.25rem, 3vw, 2.75rem);
+    color: oklch(0.46 0.12 242);
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    font-weight: 760;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    filter: drop-shadow(0 8px 14px rgb(30 64 175 / 0.14));
+  }
+
+  .login-brand {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    color: oklch(0.16 0.01 250);
+    filter: drop-shadow(0 10px 16px rgb(15 23 42 / 0.1));
+  }
+
+  .login-brand::after {
+    content: '';
+    position: absolute;
+    right: 50%;
+    bottom: -0.55rem;
+    width: clamp(2.5rem, 5vw, 3.75rem);
+    height: 1px;
+    transform: translateX(50%);
+    background: linear-gradient(90deg, transparent, oklch(0.58 0.045 250 / 70%), transparent);
+  }
+
+  .login-brand__product {
+    color: oklch(0.15 0.012 250);
+    font-size: clamp(3rem, 5vw, 4.75rem);
+    font-weight: 760;
+    line-height: 0.82;
+    letter-spacing: -0.055em;
+  }
+
+  .login-brand__subtitle {
+    margin-top: 0.95rem;
+    color: oklch(0.55 0.028 250 / 76%);
+    font-size: clamp(0.75rem, 1vw, 0.875rem);
+    font-weight: 600;
+    letter-spacing: 0.055em;
+  }
+
+  .login-input {
+    border-color: transparent !important;
+    background-color: rgb(255 255 255 / 0.84);
+    box-shadow:
+      0 -3px 9px rgb(15 23 42 / 0.045),
+      0 8px 16px -14px rgb(15 23 42 / 0.24),
+      inset 0 1px 0 rgb(255 255 255 / 0.98) !important;
+  }
+
+  .login-input:focus-visible {
+    border-color: transparent !important;
+    box-shadow:
+      0 -3px 10px rgb(15 23 42 / 0.06),
+      0 9px 18px -14px rgb(15 23 42 / 0.28),
+      0 0 0 3px rgb(148 163 184 / 0.09),
+      inset 0 1px 0 rgb(255 255 255 / 0.98) !important;
+  }
+
+  .login-page-bg {
+    background-color: oklch(0.97 0 0);
+    background-image:
+      radial-gradient(circle at 50% 46%, rgb(255 255 255 / 0.86) 0 19rem, transparent 35rem),
+      linear-gradient(180deg, rgb(255 255 255 / 0.76), rgb(255 255 255 / 0.62)),
+      url('/images/login-bg-1.jpg');
+    background-position: center, center, center;
+    background-repeat: no-repeat;
+    background-size: auto, auto, cover;
+  }
+
+  @media (max-width: 640px) {
+    .login-company-mark {
+      right: 1rem;
+      left: 1rem;
+      text-align: center;
+    }
+
+    .login-page-bg {
+      background-position:
+        center,
+        center,
+        50% 50%;
+    }
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
