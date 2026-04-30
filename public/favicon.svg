@@ -1,0 +1,28 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">PMS</title>
+  <desc id="desc">PMS favicon for UT time tracking.</desc>
+  <defs>
+    <linearGradient id="favicon-bg" x1="18" y1="112" x2="116" y2="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2742B8"/>
+      <stop offset="0.54" stop-color="#1682D4"/>
+      <stop offset="1" stop-color="#38DCE3"/>
+    </linearGradient>
+    <linearGradient id="favicon-shine" x1="18" y1="21" x2="108" y2="95" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="favicon-shadow" x="5" y="8" width="118" height="118" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#0B315F" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+
+  <rect x="14" y="14" width="100" height="100" rx="24" fill="url(#favicon-bg)" filter="url(#favicon-shadow)"/>
+  <path d="M26 95L103 33" stroke="url(#favicon-shine)" stroke-width="22" stroke-linecap="round"/>
+  <path d="M84 36H101V88H64V66" stroke="#B9F9FF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M84 52H101M84 69H101" stroke="#B9F9FF" stroke-width="5" stroke-linecap="round" opacity="0.42"/>
+  <path
+    d="M31 94V33H66C82 33 93 43 93 58C93 73 82 83 66 83H50V94H31ZM50 66H64C70 66 74 63 74 58C74 53 70 50 64 50H50V66Z"
+    fill="#FFFFFF"
+  />
+  <path d="M32 100H96" stroke="#8AF7FF" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+</svg>
