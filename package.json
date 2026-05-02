@@ -10,7 +10,8 @@
     "lint": "vp lint --fix",
     "fmt": "vp fmt",
     "release": "bumpp",
-    "prepare": "vp config"
+    "prepare": "vp config",
+    "deploy": "vp build && wrangler deploy"
   },
   "dependencies": {
     "@dayflow/core": "^3.5.2",
