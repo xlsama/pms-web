@@ -10,3 +10,8 @@ count.txt
 
 # Local Netlify folder
 .netlify
+
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
