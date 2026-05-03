@@ -19,8 +19,8 @@ importers:
   .:
     dependencies:
       '@dayflow/core':
-        specifier: ^3.5.3
-        version: 3.5.3
+        specifier: ^3.6.0
+        version: 3.6.0
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -184,8 +184,8 @@ importers:
         specifier: ^7.75.0
         version: 7.75.0(react@19.2.5)
       react-resizable-panels:
-        specifier: ^4.10.0
-        version: 4.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+        specifier: ^4.11.0
+        version: 4.11.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       recharts:
         specifier: 3.8.1
         version: 3.8.1(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react-is@18.3.1)(react@19.2.5)(redux@5.0.1)
@@ -407,16 +407,16 @@ packages:
   '@dayflow/blossom-color-picker@2.2.0':
     resolution: {integrity: sha512-FkH5Ho6nk91F29TKvYRO/h6DKQbW+DE+tMo+/QZ6n+U8JFNt1ozbbCAJ1Kwm4w2i4owQ0JKqq+aZHmknEJBa1w==}
 
-  '@dayflow/core@3.5.3':
-    resolution: {integrity: sha512-0LfNqgNVC7T4hiR3xYxY6k/CCwAL2z/dl9uXghttsD+VJ1FvCKn6wyCsce+zNI8cmJ5yDLw2dhyfiPcvTz3HRQ==}
+  '@dayflow/core@3.6.0':
+    resolution: {integrity: sha512-jdcapyN+t3Q/JzVYlxh/iLbwPcc38yc8E81bfhRV02heUqYVUPOivfW+u4vSXKHYzL1Q2QhAJGqZDQkkSnVsRg==}
 
-  '@dayflow/ui-context-menu@1.0.3':
-    resolution: {integrity: sha512-YPqDqkVWLNnYEAdvp6jtmkOGisOdScwrB4cCmiDSaLKSNabRSd/eiiG1246PGlyLfUBvE03t0J7rE7uuiErICQ==}
+  '@dayflow/ui-context-menu@1.1.0':
+    resolution: {integrity: sha512-cuha4G4Qb0+3f2SAjLxEHqWAS8mEG0R6aG3ltelT3zn/YzAPevNSmiJhoy9pb/2kyWJJ3yfuciG8MDf+y96hfQ==}
     peerDependencies:
       preact: '>=10'
 
-  '@dayflow/ui-range-picker@1.0.3':
-    resolution: {integrity: sha512-5S4BAL7XcZC8Q1zoxmMpQGHpCx0n5YHdd4pywsRsKkHzrCZj3yCLazp6xQW2adkLJndHc1X/vUU3TqKDQHtAMQ==}
+  '@dayflow/ui-range-picker@1.1.0':
+    resolution: {integrity: sha512-wX9k1iO5oEy70uwDGm8dDNgGkhrr/VAZqAr+UNHjeP5ulYhhOC2tL64tyhuBYxyB9ZdUX1EtmnfhD+LeAERDmQ==}
     peerDependencies:
       preact: '>=10'
       temporal-polyfill: '>=0.2'
@@ -2810,8 +2810,8 @@ packages:
       '@types/react':
         optional: true
 
-  react-resizable-panels@4.10.0:
-    resolution: {integrity: sha512-frjewRQt7TCv/vCH1pJfjZ7RxAhr5pKuqVQtVgzFq/vherxBFOWyC3xMbryx5Ti2wylViGUFc93Etg4rB3E0UA==}
+  react-resizable-panels@4.11.0:
+    resolution: {integrity: sha512-LPk/AkFDGkg7SsbOyL93ojrE6E7lhrxxDwnYNjfmnSeI6BE7Sje6dB24PXgZk8DeugdeXNk1LO+ohRqIjhxiLw==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
@@ -3296,20 +3296,20 @@ snapshots:
 
   '@dayflow/blossom-color-picker@2.2.0': {}
 
-  '@dayflow/core@3.5.3':
+  '@dayflow/core@3.6.0':
     dependencies:
       '@dayflow/blossom-color-picker': 2.2.0
-      '@dayflow/ui-context-menu': 1.0.3(preact@10.29.1)
-      '@dayflow/ui-range-picker': 1.0.3(preact@10.29.1)(temporal-polyfill@0.3.2)
+      '@dayflow/ui-context-menu': 1.1.0(preact@10.29.1)
+      '@dayflow/ui-range-picker': 1.1.0(preact@10.29.1)(temporal-polyfill@0.3.2)
       preact: 10.29.1
       temporal-polyfill: 0.3.2
       tslib: 2.8.1
 
-  '@dayflow/ui-context-menu@1.0.3(preact@10.29.1)':
+  '@dayflow/ui-context-menu@1.1.0(preact@10.29.1)':
     dependencies:
       preact: 10.29.1
 
-  '@dayflow/ui-range-picker@1.0.3(preact@10.29.1)(temporal-polyfill@0.3.2)':
+  '@dayflow/ui-range-picker@1.1.0(preact@10.29.1)(temporal-polyfill@0.3.2)':
     dependencies:
       preact: 10.29.1
       temporal-polyfill: 0.3.2
@@ -5402,7 +5402,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
 
-  react-resizable-panels@4.10.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
+  react-resizable-panels@4.11.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5):
     dependencies:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
