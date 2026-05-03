@@ -86,7 +86,7 @@ export function UtForm({
 }: UtFormProps) {
   const [allocations, setAllocations] = useState<Array<AllocationItem>>([])
   const [hasInitialized, setHasInitialized] = useState(false)
-  const [leaveAccordion, setLeaveAccordion] = useState<string>('')
+  const [leaveAccordion, setLeaveAccordion] = useState<Array<string>>([])
   const submitUt = useSubmitUt()
 
   // Initialize allocations from existing or create default for all projects
@@ -142,7 +142,7 @@ export function UtForm({
   // Auto-expand leave accordion when leave allocations have values
   useEffect(() => {
     if (leaveAllocations.some(a => a.value > 0)) {
-      setLeaveAccordion('leave')
+      setLeaveAccordion(['leave'])
     }
   }, [hasInitialized]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -249,17 +249,19 @@ export function UtForm({
         <div className="flex items-center gap-3">
           {canEdit && totalUt > 0 && (
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 text-muted-foreground"
-                  onClick={resetAllocations}
-                >
-                  <RotateCcw className="size-4" />
-                </Button>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 text-muted-foreground"
+                    onClick={resetAllocations}
+                  >
+                    <RotateCcw className="size-4" />
+                  </Button>
+                }
+              />
               <TooltipContent>重置</TooltipContent>
             </Tooltip>
           )}
@@ -286,10 +288,8 @@ export function UtForm({
 
         {leaveAllocations.length > 0 && (
           <Accordion
-            type="single"
-            collapsible
             value={leaveAccordion}
-            onValueChange={setLeaveAccordion}
+            onValueChange={value => setLeaveAccordion(value as Array<string>)}
           >
             <AccordionItem value="leave" className="border-none">
               <AccordionTrigger className="py-2 text-xs text-muted-foreground hover:no-underline">

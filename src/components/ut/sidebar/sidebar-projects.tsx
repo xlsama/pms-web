@@ -60,7 +60,7 @@ export function SidebarProjects() {
       ))}
 
       {leaveProjects.length > 0 && (
-        <Accordion type="single" collapsible>
+        <Accordion>
           <AccordionItem value="leave" className="border-none">
             <AccordionTrigger className="px-2 py-2 text-xs text-muted-foreground hover:no-underline">
               请假项目

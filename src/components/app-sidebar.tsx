@@ -65,23 +65,21 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="h-auto">
-              <Avatar className="size-8">
-                <AvatarImage src="" />
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {user?.name?.charAt(0) ?? '?'}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-semibold">{user?.name ?? '未登录'}</span>
-              <ChevronsUpDown className="ml-auto" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            side="top"
-            align="start"
-            className="w-(--radix-dropdown-menu-trigger-width)"
-          >
+          <DropdownMenuTrigger
+            render={
+              <SidebarMenuButton className="h-auto">
+                <Avatar className="size-8">
+                  <AvatarImage src="" />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {user?.name?.charAt(0) ?? '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-semibold">{user?.name ?? '未登录'}</span>
+                <ChevronsUpDown className="ml-auto" />
+              </SidebarMenuButton>
+            }
+          />
+          <DropdownMenuContent side="top" align="start" className="w-(--anchor-width)">
             <DropdownMenuLabel>设置</DropdownMenuLabel>
             <DropdownMenuGroup>
               <DropdownMenuItem onSelect={() => setChangePwdOpen(true)}>

@@ -11,9 +11,7 @@ export function NotFound() {
           <EmptyTitle>404 - Not Found</EmptyTitle>
         </EmptyHeader>
         <EmptyContent>
-          <Button asChild>
-            <Link to="/">回到首页</Link>
-          </Button>
+          <Button render={<Link to="/" />}>回到首页</Button>
         </EmptyContent>
       </Empty>
     </div>

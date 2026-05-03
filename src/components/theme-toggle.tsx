@@ -14,13 +14,15 @@ export function ModeToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Sun className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-          <Moon className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-          <span className="sr-only">切换主题</span>
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="ghost" size="icon">
+            <Sun className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+            <Moon className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+            <span className="sr-only">切换主题</span>
+          </Button>
+        }
+      />
       <DropdownMenuContent align="start">
         <DropdownMenuItem onClick={() => setTheme('light')}>浅色</DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('dark')}>深色</DropdownMenuItem>

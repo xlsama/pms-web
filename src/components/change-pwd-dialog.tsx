@@ -27,7 +27,7 @@ const schema = z
   })
 
 interface ChangePwdDialogProps {
-  trigger?: React.ReactNode
+  trigger?: React.ReactElement
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }
@@ -61,7 +61,7 @@ export function ChangePwdDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+      {trigger && <DialogTrigger render={trigger} />}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>修改密码</DialogTitle>
