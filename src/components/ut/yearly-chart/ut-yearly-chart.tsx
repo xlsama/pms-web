@@ -30,6 +30,14 @@ export function UtYearlyChart({ data }: UtYearlyChartProps) {
 
   const stackOrder = useMemo(() => [...projects].reverse(), [projects])
 
+  const visibleData = useMemo(() => {
+    if (monthlyData.length === 0) return monthlyData
+    const lastIdx = monthlyData.length - 1
+    return monthlyData.filter(
+      (row, idx) => idx === lastIdx || projects.some(p => (row[p.key] as number) > 0),
+    )
+  }, [monthlyData, projects])
+
   if (isPending) return <ChartSkeleton />
 
   if (isError) {
@@ -66,7 +74,7 @@ export function UtYearlyChart({ data }: UtYearlyChartProps) {
       {stats.top3.length > 0 && <Top3Row top3={stats.top3} />}
 
       <ChartContainer config={chartConfig} className="aspect-auto h-[480px] w-full">
-        <BarChart data={monthlyData} margin={{ left: 4, right: 16, top: 8 }}>
+        <BarChart data={visibleData} margin={{ left: 4, right: 16, top: 8 }}>
           <CartesianGrid vertical={false} />
           <XAxis
             dataKey="monthLabel"
@@ -123,7 +131,9 @@ export function UtYearlyChart({ data }: UtYearlyChartProps) {
             )
           })}
           <ChartLegend
-            content={<ChartLegendContent className="flex-wrap [&>div]:whitespace-nowrap" />}
+            content={
+              <ChartLegendContent className="!grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 [&>div]:min-w-0 [&>div:nth-child(3n)]:sm:justify-self-end [&>div:nth-child(3n+2)]:sm:justify-self-center" />
+            }
           />
         </BarChart>
       </ChartContainer>

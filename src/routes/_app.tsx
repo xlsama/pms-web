@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { endOfMonth, format, startOfMonth } from 'date-fns'
-import { TrendingUp } from 'lucide-react'
+import { ChartNoAxesColumnIncreasing } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { AppSidebar } from '@/components/app-sidebar'
@@ -118,7 +118,7 @@ function AppLayout() {
                 onClick={() => setChartOpen(true)}
                 aria-label="查看年度项目工时"
               >
-                <TrendingUp />
+                <ChartNoAxesColumnIncreasing />
               </Button>
               <ModeToggle />
             </div>
