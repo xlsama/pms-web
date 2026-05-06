@@ -132,7 +132,7 @@ export function UtYearlyChart({ data }: UtYearlyChartProps) {
           })}
           <ChartLegend
             content={
-              <ChartLegendContent className="!grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 [&>div]:min-w-0 [&>div:nth-child(3n)]:sm:justify-self-end [&>div:nth-child(3n+2)]:sm:justify-self-center" />
+              <ChartLegendContent className="!grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 sm:px-12 [&>div]:min-w-0 [&>div:nth-child(3n)]:sm:justify-self-end [&>div:nth-child(3n+2)]:sm:justify-self-center" />
             }
           />
         </BarChart>
