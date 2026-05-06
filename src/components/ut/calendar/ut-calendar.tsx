@@ -157,10 +157,10 @@ export function UtCalendar() {
           </Button>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={() => navigateMonth(-1)}>
+          <Button variant="ghost" size="icon-sm" onClick={() => navigateMonth(-1)}>
             <ChevronLeft className="size-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => navigateMonth(1)}>
+          <Button variant="ghost" size="icon-sm" onClick={() => navigateMonth(1)}>
             <ChevronRight className="size-4" />
           </Button>
         </div>

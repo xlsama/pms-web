@@ -43,7 +43,7 @@ export function UtDayCell({ date, isCurrentMonth, isToday, dailyData }: UtDayCel
         <span
           className={cn(
             'text-[10px]',
-            isFestival ? 'font-medium text-red-500' : 'text-muted-foreground',
+            isFestival ? 'font-bold text-red-500' : 'text-muted-foreground',
             !isCurrentMonth && 'opacity-50',
           )}
         >
@@ -58,7 +58,7 @@ export function UtDayCell({ date, isCurrentMonth, isToday, dailyData }: UtDayCel
             <div
               key={i}
               className={cn(
-                'truncate rounded px-1 py-0.5 text-xs',
+                'truncate rounded px-1 py-0.5 text-xs font-medium',
                 getStatusColorClass(record.status),
               )}
             >

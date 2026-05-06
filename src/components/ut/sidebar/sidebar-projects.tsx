@@ -65,7 +65,7 @@ export function SidebarProjects() {
             <AccordionTrigger className="px-2 py-2 text-xs text-muted-foreground hover:no-underline">
               请假项目
             </AccordionTrigger>
-            <AccordionContent className="pb-0">
+            <AccordionContent className="pb-0 [&_p:not(:last-child)]:mb-0">
               <div className="space-y-2">
                 {leaveProjects.map(project => (
                   <DraggableProject key={project.id} project={project} />

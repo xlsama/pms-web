@@ -2,6 +2,13 @@
   "name": "pms",
   "version": "1.0.0",
   "private": true,
+  "workspaces": {
+    "catalog": {
+      "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.20",
+      "vite-plus": "^0.1.20",
+      "vitest": "npm:@voidzero-dev/vite-plus-test@^0.1.20"
+    }
+  },
   "type": "module",
   "scripts": {
     "dev": "vp dev",
@@ -15,6 +22,7 @@
   "dependencies": {
     "@base-ui/react": "^1.4.1",
     "@dnd-kit/core": "^6.3.1",
+    "@fontsource-variable/geist": "^5.2.8",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-form": "^1.29.1",
@@ -38,6 +46,7 @@
     "react-dom": "^19.2.5",
     "react-resizable-panels": "^4.11.0",
     "recharts": "3.8.0",
+    "shadcn": "^4.7.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.4",
@@ -58,6 +67,10 @@
     "typescript": "^6.0.3",
     "vite": "catalog:",
     "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "overrides": {
+    "vite": "catalog:",
     "vitest": "catalog:"
   },
   "engines": {

@@ -52,8 +52,8 @@ export function UtDayCard({ date, isToday, isUnfilled, dailyData, onClick }: UtD
           </div>
           <span
             className={cn(
-              'text-xs font-medium',
-              isFestival ? 'text-red-500' : 'text-muted-foreground',
+              'text-xs font-medium text-muted-foreground',
+              isFestival && 'font-bold text-red-500',
             )}
           >
             {format(dateObj, 'EE', { locale: zhCN })} · {lunarText}

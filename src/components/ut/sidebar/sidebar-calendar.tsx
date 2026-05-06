@@ -16,13 +16,13 @@ export function SidebarCalendar() {
       month={currentDate}
       onMonthChange={setCurrentDate}
       selected={isSameMonth(currentDate, today) ? today : undefined}
-      onSelect={date => {
-        if (date) {
-          setCurrentDate(date)
-          setFlashDate(format(date, 'yyyy-MM-dd'))
-        }
+      onDayClick={date => {
+        console.log('[sidebar-calendar] onDayClick', date)
+        setCurrentDate(date)
+        setFlashDate(format(date, 'yyyy-MM-dd'))
       }}
-      className="rounded-md border"
+      className="rounded-md border [--cell-size:--spacing(8)]"
+      classNames={{ root: 'w-full' }}
     />
   )
 }
