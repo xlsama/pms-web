@@ -58,9 +58,6 @@ export function UtDayPopover({
             initialFocus={false}
             className="z-50 flex max-h-[calc(var(--available-height)-1rem)] w-[calc(100vw-2rem)] max-w-md origin-(--transform-origin) flex-col gap-2.5 overflow-y-auto rounded-lg bg-popover p-6 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 lg:max-w-lg data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
           >
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">填写 UT</h2>
-            </div>
             <UtForm
               date={date}
               projects={projects}

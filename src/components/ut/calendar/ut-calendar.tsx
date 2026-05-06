@@ -31,12 +31,14 @@ export function UtCalendar() {
   const {
     currentDate,
     setCurrentDate,
+    setFocusedDate,
     selectedDate,
     setSelectedDate,
     setPrefilledProject,
     formOpen,
     setFormOpen,
     flashDate,
+    flashNonce,
     setFlashDate,
     highlightUnfilled,
   } = useUtStore()
@@ -112,9 +114,9 @@ export function UtCalendar() {
   )
 
   function goToToday(): void {
-    const today = new Date()
-    setCurrentDate(today)
-    setFlashDate(format(today, 'yyyy-MM-dd'))
+    const todayStr = format(new Date(), 'yyyy-MM-dd')
+    setFocusedDate(todayStr)
+    setFlashDate(todayStr)
   }
 
   // Build calendar days
@@ -127,6 +129,7 @@ export function UtCalendar() {
       handlePopoverClose()
       return
     }
+    setFocusedDate(date)
     setSelectedDate(date)
     setPrefilledProject(null)
     setAnchorEl(element)
@@ -204,6 +207,7 @@ export function UtCalendar() {
               onClick={el => handleDayClick(dateStr, el)}
               isSelected={selectedDate === dateStr}
               isFlashing={flashDate === dateStr}
+              flashNonce={flashNonce}
               onFlashEnd={handleFlashEnd}
               isUnfilled={unfilledDates.has(dateStr)}
             />
@@ -235,6 +239,7 @@ interface DroppableDayProps {
   onClick: (element: HTMLElement) => void
   isSelected: boolean
   isFlashing: boolean
+  flashNonce: number
   onFlashEnd: () => void
   isUnfilled: boolean
 }
@@ -248,6 +253,7 @@ function DroppableDay({
   onClick,
   isSelected,
   isFlashing,
+  flashNonce,
   onFlashEnd,
   isUnfilled,
 }: DroppableDayProps) {
@@ -259,15 +265,6 @@ function DroppableDay({
     },
   })
 
-  useEffect(() => {
-    if (isFlashing) {
-      const timer = setTimeout(() => {
-        onFlashEnd()
-      }, 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [isFlashing, onFlashEnd])
-
   const adjustment = getAdjustmentType(date)
   const isRest = adjustment === 'rest'
   const isDisabled = isRest || isFutureDate(date)
@@ -278,22 +275,31 @@ function DroppableDay({
       data-date={date}
       data-rest={isDisabled || undefined}
       className={cn(
-        'min-h-24 border-r border-b border-gray-200 p-1 transition-colors dark:border-gray-800',
+        'relative isolate min-h-24 border-r border-b border-gray-200 p-1 transition-colors dark:border-gray-800',
         isDisabled ? 'cursor-not-allowed bg-muted/50' : 'cursor-pointer',
         !isDisabled && weekend && 'bg-muted/20',
         isOver && !isDisabled && 'bg-primary/10 ring-1 ring-gray-300 ring-inset',
         isSelected && 'ring-1 ring-gray-300 ring-inset',
-        isFlashing && 'animate-flash',
         !isDisabled && isUnfilled && 'bg-orange-50/60 dark:bg-orange-500/10',
       )}
       onClick={isDisabled ? undefined : e => onClick(e.currentTarget)}
     >
-      <UtDayCell
-        date={date}
-        isCurrentMonth={isCurrentMonth}
-        isToday={today}
-        dailyData={dailyData}
-      />
+      {isFlashing && (
+        <span
+          key={flashNonce}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 animate-flash"
+          onAnimationEnd={onFlashEnd}
+        />
+      )}
+      <div className="relative z-10 h-full">
+        <UtDayCell
+          date={date}
+          isCurrentMonth={isCurrentMonth}
+          isToday={today}
+          dailyData={dailyData}
+        />
+      </div>
     </div>
   )
 }

@@ -1,15 +1,18 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { endOfMonth, format, startOfMonth } from 'date-fns'
-import { useMemo } from 'react'
+import { TrendingUp } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 import { AppSidebar } from '@/components/app-sidebar'
 import { ModeToggle } from '@/components/theme-toggle'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
 import { RejectedUtDialog } from '@/components/ut/rejected-ut-dialog'
+import { UtYearlyChartDialog } from '@/components/ut/yearly-chart/ut-yearly-chart-dialog'
 import { useCalendarData } from '@/hooks/use-ut'
 import { countWorkdaysInRange } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
@@ -36,6 +39,7 @@ function AppLayout() {
     highlightUnfilled,
     setHighlightUnfilled,
   } = useUtStore()
+  const [chartOpen, setChartOpen] = useState(false)
   const monthRange = useMemo(
     () => ({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) }),
     [currentDate],
@@ -107,10 +111,20 @@ function AppLayout() {
               )}
             </div>
 
-            <div className="flex items-center">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setChartOpen(true)}
+                aria-label="查看年度项目工时"
+              >
+                <TrendingUp />
+              </Button>
               <ModeToggle />
             </div>
           </header>
+
+          <UtYearlyChartDialog open={chartOpen} onOpenChange={setChartOpen} />
 
           <div className="flex min-h-0 flex-1 flex-col">
             <Outlet />

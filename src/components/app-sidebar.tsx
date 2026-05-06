@@ -82,7 +82,7 @@ export function AppSidebar() {
           <DropdownMenuContent side="top" align="start" className="w-(--anchor-width)">
             <DropdownMenuGroup>
               <DropdownMenuLabel>设置</DropdownMenuLabel>
-              <DropdownMenuItem onSelect={() => setChangePwdOpen(true)}>
+              <DropdownMenuItem onClick={() => setChangePwdOpen(true)}>
                 <KeyRound />
                 修改密码
               </DropdownMenuItem>

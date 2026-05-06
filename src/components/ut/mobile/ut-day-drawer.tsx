@@ -1,4 +1,4 @@
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer'
 import type { DailyData, Project } from '@/types/ut'
 
 import { UtForm } from '../form/ut-form'
@@ -19,10 +19,8 @@ export function UtDayDrawer({ open, onOpenChange, date, projects, dailyData }: U
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>填写 UT</DrawerTitle>
-        </DrawerHeader>
-        <div className="overflow-auto p-4">
+        <DrawerTitle className="sr-only">填写 UT</DrawerTitle>
+        <div className="overflow-auto p-4 pt-6">
           <UtForm
             date={date}
             projects={projects}

@@ -21,9 +21,10 @@ import { UtStatus } from '@/types/ut'
 import { UtValueInput } from './ut-value-input'
 
 function getTotalColorClass(total: number): string {
+  if (total === 0) return 'text-muted-foreground'
   if (total === 1) return 'text-green-600'
   if (total > 1) return 'text-red-600'
-  return 'text-muted-foreground'
+  return 'text-foreground'
 }
 
 interface UtFormProps {
@@ -240,34 +241,49 @@ export function UtForm({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold">
-            {formattedDay}{' '}
-            <span className="text-xs font-normal text-muted-foreground">{formattedWeekday}</span>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+            填写UT
           </p>
-        </div>
-        <div className="flex items-center gap-3">
           {canEdit && totalUt > 0 && (
             <Tooltip>
               <TooltipTrigger
+                delay={0}
                 render={
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="size-7 text-muted-foreground"
+                    className="-mr-1.5 size-6 text-muted-foreground/70 hover:text-foreground"
                     onClick={resetAllocations}
                   >
-                    <RotateCcw className="size-4" />
+                    <RotateCcw className="size-3.5" />
                   </Button>
                 }
               />
               <TooltipContent>重置</TooltipContent>
             </Tooltip>
           )}
-          <div className={cn('text-lg font-bold', getTotalColorClass(roundedTotal))}>
-            {roundedTotal} / 1 UT
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-lg font-semibold tracking-tight">
+            {formattedDay}
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              {formattedWeekday}
+            </span>
+          </p>
+          <div
+            className={cn(
+              'flex items-center gap-1.5 text-lg font-semibold tabular-nums',
+              getTotalColorClass(roundedTotal),
+            )}
+          >
+            {roundedTotal}
+            <span className="text-sm font-normal text-muted-foreground">/ 1</span>
+            <span className="ml-0.5 text-[11px] font-medium tracking-[0.1em] text-muted-foreground uppercase">
+              UT
+            </span>
           </div>
         </div>
       </div>
