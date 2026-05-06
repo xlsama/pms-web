@@ -9,8 +9,17 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useTheme } from '@/contexts/theme-provider'
 
+type Theme = 'light' | 'dark' | 'system'
+
+function getOrigin(e: React.MouseEvent) {
+  if (e.clientX === 0 && e.clientY === 0) return undefined
+  return { x: e.clientX, y: e.clientY }
+}
+
 export function ModeToggle() {
   const { setTheme } = useTheme()
+
+  const pick = (t: Theme) => (e: React.MouseEvent) => setTheme(t, getOrigin(e))
 
   return (
     <DropdownMenu>
@@ -24,9 +33,9 @@ export function ModeToggle() {
         }
       />
       <DropdownMenuContent align="start">
-        <DropdownMenuItem onClick={() => setTheme('light')}>浅色</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>深色</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>跟随系统</DropdownMenuItem>
+        <DropdownMenuItem onClick={pick('light')}>浅色</DropdownMenuItem>
+        <DropdownMenuItem onClick={pick('dark')}>深色</DropdownMenuItem>
+        <DropdownMenuItem onClick={pick('system')}>跟随系统</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

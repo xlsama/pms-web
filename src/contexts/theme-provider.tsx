@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState } from 'react'
 
 type Theme = 'dark' | 'light' | 'system'
 
+type Origin = { x: number; y: number }
+
 type ThemeProviderProps = {
   children: React.ReactNode
   defaultTheme?: Theme
@@ -10,7 +12,7 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
   theme: Theme
-  setTheme: (theme: Theme) => void
+  setTheme: (theme: Theme, origin?: Origin) => void
 }
 
 const initialState: ThemeProviderState = {
@@ -20,37 +22,74 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 
+function resolveTheme(theme: Theme): 'light' | 'dark' {
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return theme
+}
+
+function applyToDom(theme: Theme) {
+  const root = window.document.documentElement
+  root.classList.remove('light', 'dark')
+  root.classList.add(resolveTheme(theme))
+}
+
+type DocWithViewTransition = Document & {
+  startViewTransition?: (cb: () => void) => { ready: Promise<void> }
+}
+
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
   storageKey = 'theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
+  const [theme, setThemeState] = useState<Theme>(
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
   )
 
   useEffect(() => {
-    const root = window.document.documentElement
-    root.classList.remove('light', 'dark')
-
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
-      root.classList.add(systemTheme)
-      return
-    }
-
-    root.classList.add(theme)
+    applyToDom(theme)
   }, [theme])
 
-  const value = {
+  const value: ThemeProviderState = {
     theme,
-    setTheme: (_theme: Theme) => {
-      localStorage.setItem(storageKey, _theme)
-      setTheme(_theme)
+    setTheme: (next, origin) => {
+      const commit = () => {
+        localStorage.setItem(storageKey, next)
+        applyToDom(next)
+        setThemeState(next)
+      }
+
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const doc = document as DocWithViewTransition
+      if (reduce || typeof doc.startViewTransition !== 'function') {
+        commit()
+        return
+      }
+
+      const x = origin?.x ?? window.innerWidth - 80
+      const y = origin?.y ?? 60
+      const radius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y),
+      )
+
+      const transition = doc.startViewTransition(commit)
+      void transition.ready.then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`],
+          },
+          {
+            duration: 320,
+            easing: 'cubic-bezier(0.2, 0, 0, 1)',
+            pseudoElement: '::view-transition-new(root)',
+          },
+        )
+      })
     },
   }
 
