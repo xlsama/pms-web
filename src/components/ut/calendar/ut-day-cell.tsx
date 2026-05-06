@@ -24,7 +24,7 @@ export function UtDayCell({ date, isCurrentMonth, isToday, dailyData }: UtDayCel
             className={cn(
               'flex size-6 items-center justify-center rounded-full text-sm',
               !isCurrentMonth && 'text-muted-foreground',
-              isToday && 'bg-primary text-primary-foreground',
+              isToday && 'bg-primary font-semibold text-primary-foreground',
             )}
           >
             {day}
@@ -32,7 +32,7 @@ export function UtDayCell({ date, isCurrentMonth, isToday, dailyData }: UtDayCel
           {adjustment && (
             <span
               className={cn(
-                'absolute -top-px -right-3.5 flex size-3.5 items-center justify-center rounded-full text-[8px] leading-none font-medium text-white',
+                'absolute -top-px -right-3.5 flex size-3.5 items-center justify-center rounded-full text-[8px] leading-none font-semibold text-white',
                 adjustment === 'work' ? 'bg-red-400' : 'bg-green-400',
               )}
             >

@@ -161,7 +161,7 @@ export function useSubmitUt() {
   return useMutation({
     mutationFn: (req: UpdateConsumeReq) => updateConsume(req),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: utKeys.days() })
+      void queryClient.invalidateQueries({ queryKey: utKeys.days() })
     },
   })
 }

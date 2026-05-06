@@ -40,7 +40,7 @@ function LoginPage() {
     onSuccess: res => {
       const { token, data } = res
       setAuth(token, data)
-      navigate({ to: '/' })
+      void navigate({ to: '/' })
     },
   })
 
@@ -95,7 +95,7 @@ function LoginPage() {
             <form
               onSubmit={e => {
                 e.preventDefault()
-                form.handleSubmit()
+                void form.handleSubmit()
               }}
             >
               <FieldGroup>
