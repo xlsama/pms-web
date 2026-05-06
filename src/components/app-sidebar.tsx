@@ -54,7 +54,7 @@ export function AppSidebar() {
         <SidebarGroup className="flex-1">
           <SidebarGroupLabel>
             项目
-            <span className="ml-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+            <span className="ml-1 text-muted-foreground opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
               （拖拽到日历）
             </span>
           </SidebarGroupLabel>
@@ -80,8 +80,8 @@ export function AppSidebar() {
             }
           />
           <DropdownMenuContent side="top" align="start" className="w-(--anchor-width)">
-            <DropdownMenuLabel>设置</DropdownMenuLabel>
             <DropdownMenuGroup>
+              <DropdownMenuLabel>设置</DropdownMenuLabel>
               <DropdownMenuItem onSelect={() => setChangePwdOpen(true)}>
                 <KeyRound />
                 修改密码

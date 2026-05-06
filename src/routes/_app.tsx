@@ -62,7 +62,7 @@ function AppLayout() {
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b bg-sidebar px-4 py-2">
+          <header className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b bg-muted/40 px-4 py-2">
             <div className="flex min-w-0 items-center gap-2">
               <SidebarTrigger />
               <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />

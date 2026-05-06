@@ -44,8 +44,9 @@ export function RejectedUtDialog({ rejectedCount }: RejectedUtDialogProps) {
   return (
     <Dialog>
       <DialogTrigger
+        nativeButton={false}
         render={
-          <Badge className="cursor-pointer border-transparent bg-red-100 px-2 py-0.5 text-xs text-red-700 transition-colors hover:bg-red-200/50 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-800/50">
+          <Badge className="cursor-pointer border-transparent bg-red-100 px-2 py-0.5 text-xs text-red-700 transition-[colors,scale] duration-200 hover:bg-red-200/50 active:scale-[0.96] dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-800/50">
             驳回:
             <span className="ml-0.5 font-semibold tabular-nums">{rejectedCount}</span>
           </Badge>

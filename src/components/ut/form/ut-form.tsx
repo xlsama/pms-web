@@ -242,8 +242,9 @@ export function UtForm({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium">
-            {formattedDay} <span className="text-xs text-muted-foreground">{formattedWeekday}</span>
+          <p className="text-sm font-semibold">
+            {formattedDay}{' '}
+            <span className="text-xs font-normal text-muted-foreground">{formattedWeekday}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">

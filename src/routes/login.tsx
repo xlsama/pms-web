@@ -2,6 +2,7 @@ import { useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { Eye, EyeOff } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 
@@ -84,12 +85,12 @@ function LoginPage() {
       </div>
       <div className="flex w-full max-w-sm flex-col items-center">
         <div className="mb-8 w-full text-center">
-          <h1 className="login-brand" aria-label="Yechtech PMS">
+          <h1 className="login-brand text-balance" aria-label="Yechtech PMS">
             <span className="login-brand__product">PMS</span>
           </h1>
-          <p className="login-brand__subtitle">UT Work Hour Management</p>
+          <p className="login-brand__subtitle text-pretty">UT Work Hour Management</p>
         </div>
-        <Card className="w-full border-white/70 bg-white/95 text-slate-950 shadow-xl shadow-black/10 backdrop-blur-md dark:bg-white/95 dark:text-slate-950">
+        <Card className="w-full bg-white/95 text-slate-950 shadow-md ring-[0.5px] shadow-black/5 ring-foreground/5 backdrop-blur-md dark:bg-white/95 dark:text-slate-950">
           <CardContent className="pt-6">
             <form
               onSubmit={e => {
@@ -149,11 +150,22 @@ function LoginPage() {
                             className="absolute top-1/2 right-1 size-6 -translate-y-1/2 text-slate-700 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-700 dark:hover:bg-slate-100 dark:hover:text-slate-950"
                             aria-label={showPassword ? '隐藏密码' : '显示密码'}
                           >
-                            {showPassword ? (
-                              <Eye className="size-3.5" />
-                            ) : (
-                              <EyeOff className="size-3.5" />
-                            )}
+                            <AnimatePresence initial={false} mode="popLayout">
+                              <motion.span
+                                key={showPassword ? 'eye' : 'eye-off'}
+                                initial={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+                                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                                exit={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+                                transition={{ type: 'spring', duration: 0.3, bounce: 0 }}
+                                className="inline-flex"
+                              >
+                                {showPassword ? (
+                                  <Eye className="size-3.5" />
+                                ) : (
+                                  <EyeOff className="size-3.5" />
+                                )}
+                              </motion.span>
+                            </AnimatePresence>
                           </Button>
                         </div>
                         {isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -164,7 +176,7 @@ function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-neutral-900 text-white hover:bg-neutral-800 active:scale-[0.98] dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
+                  className="w-full bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? (

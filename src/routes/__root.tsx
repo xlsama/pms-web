@@ -1,6 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
 import { NotFound } from '@/components/not-found'
 import { Toaster } from '@/components/ui/sonner'
@@ -20,7 +19,6 @@ function RootComponent() {
     <ThemeProvider defaultTheme="system" storageKey="theme">
       <Outlet />
       <Toaster position="top-center" />
-      <TanStackRouterDevtools position="bottom-right" />
     </ThemeProvider>
   )
 }
