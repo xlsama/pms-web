@@ -142,31 +142,33 @@ function LoginPage() {
                             aria-invalid={isInvalid}
                             className="login-input pr-9 text-slate-950 placeholder:text-slate-500 dark:text-slate-950 dark:placeholder:text-slate-500"
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute top-1/2 right-1 size-6 -translate-y-1/2 text-slate-700 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-700 dark:hover:bg-slate-100 dark:hover:text-slate-950"
-                            aria-label={showPassword ? '隐藏密码' : '显示密码'}
-                          >
-                            <AnimatePresence initial={false} mode="popLayout">
-                              <motion.span
-                                key={showPassword ? 'eye' : 'eye-off'}
-                                initial={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
-                                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                                exit={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
-                                transition={{ type: 'spring', duration: 0.3, bounce: 0 }}
-                                className="inline-flex"
-                              >
-                                {showPassword ? (
-                                  <Eye className="size-3.5" />
-                                ) : (
-                                  <EyeOff className="size-3.5" />
-                                )}
-                              </motion.span>
-                            </AnimatePresence>
-                          </Button>
+                          <div className="absolute inset-y-0 right-1 flex items-center">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="size-6 text-slate-700 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-700 dark:hover:bg-slate-100 dark:hover:text-slate-950"
+                              aria-label={showPassword ? '隐藏密码' : '显示密码'}
+                            >
+                              <AnimatePresence initial={false} mode="popLayout">
+                                <motion.span
+                                  key={showPassword ? 'eye' : 'eye-off'}
+                                  initial={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+                                  animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                                  exit={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+                                  transition={{ type: 'spring', duration: 0.3, bounce: 0 }}
+                                  className="inline-flex"
+                                >
+                                  {showPassword ? (
+                                    <Eye className="size-3.5" />
+                                  ) : (
+                                    <EyeOff className="size-3.5" />
+                                  )}
+                                </motion.span>
+                              </AnimatePresence>
+                            </Button>
+                          </div>
                         </div>
                         {isInvalid && <FieldError errors={field.state.meta.errors} />}
                       </Field>

@@ -1,4 +1,6 @@
 import { useForm, useStore } from '@tanstack/react-form'
+import { Eye, EyeOff } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { z } from 'zod'
 
@@ -42,6 +44,9 @@ export function ChangePwdDialog({
   const open = isControlled ? controlledOpen : uncontrolledOpen
   const setOpen = isControlled ? onOpenChange! : setUncontrolledOpen
 
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
   const form = useForm({
     defaultValues: {
       password: '',
@@ -80,14 +85,45 @@ export function ChangePwdDialog({
                 return (
                   <Field data-invalid={isInvalid}>
                     <FieldLabel htmlFor={field.name}>新密码</FieldLabel>
-                    <Input
-                      id={field.name}
-                      type="password"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={e => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                    />
+                    <div className="relative">
+                      <Input
+                        id={field.name}
+                        type={showPassword ? 'text' : 'password'}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={e => field.handleChange(e.target.value)}
+                        autoComplete="new-password"
+                        aria-invalid={isInvalid}
+                        className="pr-9"
+                      />
+                      <div className="absolute inset-y-0 right-1 flex items-center">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="size-6"
+                          aria-label={showPassword ? '隐藏密码' : '显示密码'}
+                        >
+                          <AnimatePresence initial={false} mode="popLayout">
+                            <motion.span
+                              key={showPassword ? 'eye' : 'eye-off'}
+                              initial={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+                              animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                              exit={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+                              transition={{ type: 'spring', duration: 0.3, bounce: 0 }}
+                              className="inline-flex"
+                            >
+                              {showPassword ? (
+                                <Eye className="size-3.5" />
+                              ) : (
+                                <EyeOff className="size-3.5" />
+                              )}
+                            </motion.span>
+                          </AnimatePresence>
+                        </Button>
+                      </div>
+                    </div>
                     {isInvalid && <FieldError errors={field.state.meta.errors} />}
                   </Field>
                 )
@@ -100,14 +136,45 @@ export function ChangePwdDialog({
                 return (
                   <Field data-invalid={isInvalid}>
                     <FieldLabel htmlFor={field.name}>请再次输入新密码</FieldLabel>
-                    <Input
-                      id={field.name}
-                      type="password"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={e => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                    />
+                    <div className="relative">
+                      <Input
+                        id={field.name}
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={e => field.handleChange(e.target.value)}
+                        autoComplete="new-password"
+                        aria-invalid={isInvalid}
+                        className="pr-9"
+                      />
+                      <div className="absolute inset-y-0 right-1 flex items-center">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="size-6"
+                          aria-label={showConfirmPassword ? '隐藏密码' : '显示密码'}
+                        >
+                          <AnimatePresence initial={false} mode="popLayout">
+                            <motion.span
+                              key={showConfirmPassword ? 'eye' : 'eye-off'}
+                              initial={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+                              animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                              exit={{ opacity: 0, scale: 0.25, filter: 'blur(4px)' }}
+                              transition={{ type: 'spring', duration: 0.3, bounce: 0 }}
+                              className="inline-flex"
+                            >
+                              {showConfirmPassword ? (
+                                <Eye className="size-3.5" />
+                              ) : (
+                                <EyeOff className="size-3.5" />
+                              )}
+                            </motion.span>
+                          </AnimatePresence>
+                        </Button>
+                      </div>
+                    </div>
                     {isInvalid && <FieldError errors={field.state.meta.errors} />}
                   </Field>
                 )
