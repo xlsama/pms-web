@@ -1,8 +1,8 @@
 import { useQueries } from '@tanstack/react-query'
-import { eachDayOfInterval, format } from 'date-fns'
+import { format } from 'date-fns'
 
 import { getConsume } from '@/api/ut'
-import { isLeaveProject, isWorkday } from '@/lib/ut-utils'
+import { getWorkdaysInRange, isLeaveProject } from '@/lib/ut-utils'
 import { UtStatus } from '@/types/ut'
 
 import { utKeys } from './use-ut'
@@ -20,16 +20,6 @@ export interface UtSummaryData {
   totalUt: number
   isPending: boolean
   isError: boolean
-}
-
-function getWorkdaysInRange(start: Date, end: Date): Array<string> {
-  const today = new Date()
-  if (start > today) return []
-  const clampedEnd = end > today ? today : end
-  if (start > clampedEnd) return []
-  return eachDayOfInterval({ start, end: clampedEnd })
-    .map(d => format(d, 'yyyy-MM-dd'))
-    .filter(isWorkday)
 }
 
 export function useUtSummary(params: { start: Date; end: Date; enabled: boolean }): UtSummaryData {

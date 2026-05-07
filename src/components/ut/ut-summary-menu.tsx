@@ -1,4 +1,4 @@
-import { format, parseISO, startOfYear } from 'date-fns'
+import { format, startOfYear } from 'date-fns'
 import { Copy, Download, Monitor, MoonStar, MoreHorizontal, Palette, Sun } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -20,6 +20,7 @@ import { useUtSummary } from '@/hooks/use-ut-summary'
 import { copyToClipboard } from '@/lib/clipboard'
 import { downloadTextFile } from '@/lib/download'
 import { buildUtSummaryMarkdown } from '@/lib/ut-summary-markdown'
+import { parseEntryDate } from '@/lib/ut-utils'
 import { useAuthStore } from '@/stores/auth'
 
 type RangeKey = 'year' | 'all'
@@ -41,16 +42,6 @@ const TOAST_ID = 'ut-summary'
 const RANGE_LABEL: Record<RangeKey, string> = {
   year: '本年',
   all: '入职以来',
-}
-
-function parseEntryDate(entryTime: string | null | undefined): Date | null {
-  if (!entryTime) return null
-  try {
-    const date = entryTime.includes('T') ? parseISO(entryTime) : parseISO(`${entryTime}T00:00:00`)
-    return Number.isNaN(date.getTime()) ? null : date
-  } catch {
-    return null
-  }
 }
 
 export function UtSummaryMenu() {

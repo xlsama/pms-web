@@ -1,5 +1,5 @@
 import { getDayDetail, getLunarDate, isWorkday as isChineseWorkday } from 'chinese-days'
-import { eachDayOfInterval, format, isWeekend } from 'date-fns'
+import { eachDayOfInterval, format, isWeekend, parseISO } from 'date-fns'
 
 import { UtStatus } from '@/types/ut'
 
@@ -34,6 +34,28 @@ export function isWorkday(date: string): boolean {
 /** 统计区间内所有工作日数量（不截断到今天） */
 export function countWorkdaysInRange(start: Date, end: Date): number {
   return eachDayOfInterval({ start, end }).filter(d => isWorkday(format(d, 'yyyy-MM-dd'))).length
+}
+
+/** 区间内所有工作日（截断到今天，返回 yyyy-MM-dd 字符串数组） */
+export function getWorkdaysInRange(start: Date, end: Date): Array<string> {
+  const today = new Date()
+  if (start > today) return []
+  const clampedEnd = end > today ? today : end
+  if (start > clampedEnd) return []
+  return eachDayOfInterval({ start, end: clampedEnd })
+    .map(d => format(d, 'yyyy-MM-dd'))
+    .filter(isWorkday)
+}
+
+/** 解析后端返回的入职时间字符串为 Date，无效返回 null */
+export function parseEntryDate(entryTime: string | null | undefined): Date | null {
+  if (!entryTime) return null
+  try {
+    const date = entryTime.includes('T') ? parseISO(entryTime) : parseISO(`${entryTime}T00:00:00`)
+    return Number.isNaN(date.getTime()) ? null : date
+  } catch {
+    return null
+  }
 }
 
 /** 判断日期是否为未来日期（严格晚于今天） */

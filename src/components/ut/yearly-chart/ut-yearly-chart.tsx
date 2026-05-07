@@ -10,15 +10,27 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { YearlyTopProject, YearlyUtData } from '@/hooks/use-yearly-ut'
+import type { UtRange, YearlyTopProject, YearlyUtData } from '@/hooks/use-yearly-ut'
 import { cn } from '@/lib/utils'
 
 interface UtYearlyChartProps {
   data: YearlyUtData
 }
 
+const TOTAL_UT_LABEL: Record<UtRange, string> = {
+  year: '今年总 UT',
+  month: '本月总 UT',
+  all: '累计总 UT',
+}
+
+const EMPTY_RANGE_LABEL: Record<UtRange, string> = {
+  year: '今年',
+  month: '本月',
+  all: '入职以来',
+}
+
 export function UtYearlyChart({ data }: UtYearlyChartProps) {
-  const { year, monthlyData, projects, stats, isPending, isError } = data
+  const { range, bucketRows, projects, stats, isPending, isError } = data
 
   const chartConfig = useMemo<ChartConfig>(() => {
     const config: ChartConfig = {}
@@ -31,12 +43,12 @@ export function UtYearlyChart({ data }: UtYearlyChartProps) {
   const stackOrder = useMemo(() => [...projects].reverse(), [projects])
 
   const visibleData = useMemo(() => {
-    if (monthlyData.length === 0) return monthlyData
-    const lastIdx = monthlyData.length - 1
-    return monthlyData.filter(
+    if (bucketRows.length === 0) return bucketRows
+    const lastIdx = bucketRows.length - 1
+    return bucketRows.filter(
       (row, idx) => idx === lastIdx || projects.some(p => (row[p.key] as number) > 0),
     )
-  }, [monthlyData, projects])
+  }, [bucketRows, projects])
 
   if (isPending) return <ChartSkeleton />
 
@@ -51,7 +63,7 @@ export function UtYearlyChart({ data }: UtYearlyChartProps) {
   if (stats.totalUt === 0) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-1 text-sm text-muted-foreground">
-        <span>{year} 年暂无已确认的工时</span>
+        <span>{EMPTY_RANGE_LABEL[range]}暂无已确认的工时</span>
         <span className="text-xs">填写并提交后会在这里看到趋势</span>
       </div>
     )
@@ -59,15 +71,15 @@ export function UtYearlyChart({ data }: UtYearlyChartProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <StatCard label="今年总 UT" value={formatUt(stats.totalUt)} />
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <StatCard label={TOTAL_UT_LABEL[range]} value={formatUt(stats.totalUt)} />
         <StatCard label="参与项目" value={`${stats.projectCount} 个`} />
-        <StatCard label="最忙月份" value={stats.busiestMonth} />
         <StatCard
           label="主力项目"
           value={stats.topProject?.name ?? '-'}
           hint={stats.topProject ? `${formatUt(stats.topProject.totalUt)} UT` : undefined}
           truncate
+          className="col-span-2 sm:col-span-1"
         />
       </div>
 
@@ -77,11 +89,11 @@ export function UtYearlyChart({ data }: UtYearlyChartProps) {
         <BarChart data={visibleData} margin={{ left: 4, right: 16, top: 8 }}>
           <CartesianGrid vertical={false} />
           <XAxis
-            dataKey="monthLabel"
+            dataKey="bucketLabel"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            interval={0}
+            interval={visibleData.length > 12 ? 'preserveStartEnd' : 0}
           />
           <YAxis
             tickLine={false}
@@ -91,8 +103,7 @@ export function UtYearlyChart({ data }: UtYearlyChartProps) {
           />
           <ChartTooltip
             content={
-              <ChartTooltipContent
-                indicator="dot"
+              <SortedTooltipContent
                 formatter={(value, _name, item) => {
                   const key = String(item?.dataKey ?? '')
                   const label = chartConfig[key]?.label ?? key
@@ -132,7 +143,7 @@ export function UtYearlyChart({ data }: UtYearlyChartProps) {
           })}
           <ChartLegend
             content={
-              <ChartLegendContent className="!grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3 sm:px-12 [&>div]:min-w-0 [&>div:nth-child(3n)]:sm:justify-self-end [&>div:nth-child(3n+2)]:sm:justify-self-center" />
+              <ChartLegendContent className="!grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-3 sm:gap-y-2 sm:px-12 [&>div]:min-w-0 [&>div]:items-start [&>div:nth-child(3n)]:sm:justify-self-end [&>div:nth-child(3n+2)]:sm:justify-self-center [&>div>div:first-child]:mt-1" />
             }
           />
         </BarChart>
@@ -146,14 +157,16 @@ function StatCard({
   value,
   hint,
   truncate,
+  className,
 }: {
   label: string
   value: string
   hint?: string
   truncate?: boolean
+  className?: string
 }) {
   return (
-    <div className="flex flex-col gap-1 rounded-lg border bg-card px-3 py-2.5">
+    <div className={cn('flex flex-col gap-1 rounded-lg border bg-card px-3 py-2.5', className)}>
       <span className="text-xs text-muted-foreground">{label}</span>
       <span
         className={cn('text-base font-semibold tabular-nums', truncate && 'truncate')}
@@ -193,10 +206,10 @@ function Top3Row({ top3 }: { top3: Array<YearlyTopProject> }) {
 function ChartSkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 rounded-lg" />
-        ))}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <Skeleton className="h-16 rounded-lg" />
+        <Skeleton className="h-16 rounded-lg" />
+        <Skeleton className="col-span-2 h-16 rounded-lg sm:col-span-1" />
       </div>
       <div className="flex gap-2">
         {Array.from({ length: 3 }).map((_, i) => (
@@ -210,4 +223,13 @@ function ChartSkeleton() {
 
 function formatUt(n: number): string {
   return n.toFixed(1).replace(/\.0$/, '')
+}
+
+type TooltipContentProps = React.ComponentProps<typeof ChartTooltipContent>
+
+function SortedTooltipContent({ payload, ...rest }: TooltipContentProps) {
+  const sorted = payload
+    ? [...payload].sort((a, b) => Number(b.value ?? 0) - Number(a.value ?? 0))
+    : payload
+  return <ChartTooltipContent {...rest} payload={sorted} indicator="dot" />
 }

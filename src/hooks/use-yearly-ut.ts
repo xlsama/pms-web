@@ -1,8 +1,15 @@
 import { useQueries } from '@tanstack/react-query'
-import { eachDayOfInterval, format, getMonth } from 'date-fns'
+import {
+  differenceInCalendarMonths,
+  format,
+  startOfMonth,
+  startOfWeek,
+  startOfYear,
+} from 'date-fns'
 
 import { getConsume, UtStatus } from '@/api/ut'
-import { isLeaveProject, isWorkday } from '@/lib/ut-utils'
+import { getWorkdaysInRange, isLeaveProject, parseEntryDate } from '@/lib/ut-utils'
+import { useAuthStore } from '@/stores/auth'
 
 import { utKeys } from './use-ut'
 
@@ -20,6 +27,9 @@ const PROJECT_COLORS = [
 
 const OTHERS_COLOR = 'var(--color-muted-foreground)'
 
+export type UtRange = 'year' | 'month' | 'all'
+export type UtBucketGranularity = 'week' | 'month' | 'year'
+
 export interface YearlyProject {
   key: string
   name: string
@@ -27,9 +37,9 @@ export interface YearlyProject {
   color: string
 }
 
-export interface YearlyMonthRow {
-  monthKey: string
-  monthLabel: string
+export interface YearlyBucketRow {
+  bucketKey: string
+  bucketLabel: string
   [projectKey: string]: number | string
 }
 
@@ -42,43 +52,109 @@ export interface YearlyTopProject {
 export interface YearlyStats {
   totalUt: number
   projectCount: number
-  busiestMonth: string
   topProject: { name: string; totalUt: number } | null
   top3: Array<YearlyTopProject>
 }
 
 export interface YearlyUtData {
-  year: number
-  monthlyData: Array<YearlyMonthRow>
+  range: UtRange
+  granularity: UtBucketGranularity
+  start: Date
+  end: Date
+  bucketRows: Array<YearlyBucketRow>
   projects: Array<YearlyProject>
   stats: YearlyStats
   isPending: boolean
   isError: boolean
+  entryDateMissing: boolean
 }
 
-function getYearWorkdays(year: number): Array<string> {
-  const today = new Date()
-  const start = new Date(year, 0, 1)
-  const end = today.getFullYear() === year ? today : new Date(year, 11, 31)
-  if (start > end) return []
-  return eachDayOfInterval({ start, end })
-    .map(d => format(d, 'yyyy-MM-dd'))
-    .filter(isWorkday)
+interface RangeSpec {
+  start: Date
+  end: Date
+  granularity: UtBucketGranularity
+  entryDateMissing: boolean
 }
 
-function buildEmptyMonthlyData(year: number): Array<YearlyMonthRow> {
+function resolveRangeSpec(range: UtRange, entryDate: Date | null): RangeSpec {
   const today = new Date()
-  const lastMonth = today.getFullYear() === year ? getMonth(today) : 11
-  const rows: Array<YearlyMonthRow> = []
-  for (let m = 0; m <= lastMonth; m++) {
-    rows.push({ monthKey: `${year}-${String(m + 1).padStart(2, '0')}`, monthLabel: `${m + 1}月` })
+  if (range === 'month') {
+    return { start: startOfMonth(today), end: today, granularity: 'week', entryDateMissing: false }
   }
-  return rows
+  if (range === 'all') {
+    if (!entryDate) {
+      return {
+        start: startOfYear(today),
+        end: today,
+        granularity: 'month',
+        entryDateMissing: true,
+      }
+    }
+    const months = differenceInCalendarMonths(today, entryDate)
+    const granularity: UtBucketGranularity = months > 18 ? 'year' : 'month'
+    return { start: entryDate, end: today, granularity, entryDateMissing: false }
+  }
+  return { start: startOfYear(today), end: today, granularity: 'month', entryDateMissing: false }
 }
 
-export function useYearlyUtData(enabled: boolean): YearlyUtData {
-  const year = new Date().getFullYear()
-  const dates = getYearWorkdays(year)
+function buildBucketsForSpec(spec: RangeSpec): {
+  rows: Array<YearlyBucketRow>
+  resolveKey: (date: string) => string | null
+} {
+  const { start, end, granularity } = spec
+
+  if (granularity === 'year') {
+    const startYear = start.getFullYear()
+    const endYear = end.getFullYear()
+    const rows: Array<YearlyBucketRow> = []
+    for (let y = startYear; y <= endYear; y++) {
+      rows.push({ bucketKey: String(y), bucketLabel: String(y) })
+    }
+    return { rows, resolveKey: date => date.slice(0, 4) }
+  }
+
+  if (granularity === 'month') {
+    const rows: Array<YearlyBucketRow> = []
+    const cursor = startOfMonth(start)
+    const last = startOfMonth(end)
+    const sameYearAll = start.getFullYear() === end.getFullYear()
+    while (cursor <= last) {
+      const key = format(cursor, 'yyyy-MM')
+      const label = sameYearAll ? `${cursor.getMonth() + 1}月` : key
+      rows.push({ bucketKey: key, bucketLabel: label })
+      cursor.setMonth(cursor.getMonth() + 1)
+    }
+    return { rows, resolveKey: date => date.slice(0, 7) }
+  }
+
+  // week granularity（通常用于 'month' range）：以周一为周 key，按出现顺序编号 W1..Wn
+  const rows: Array<YearlyBucketRow> = []
+  const keyByDate = new Map<string, string>()
+  const seen = new Set<string>()
+  const cursor = new Date(start)
+  cursor.setHours(0, 0, 0, 0)
+  let weekIndex = 0
+  while (cursor <= end) {
+    const dateStr = format(cursor, 'yyyy-MM-dd')
+    const monday = startOfWeek(cursor, { weekStartsOn: 1 })
+    const key = format(monday, 'yyyy-MM-dd')
+    if (!seen.has(key)) {
+      seen.add(key)
+      weekIndex += 1
+      rows.push({ bucketKey: key, bucketLabel: `W${weekIndex}` })
+    }
+    keyByDate.set(dateStr, key)
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return { rows, resolveKey: date => keyByDate.get(date) ?? null }
+}
+
+export function useYearlyUtData(enabled: boolean, range: UtRange = 'year'): YearlyUtData {
+  const user = useAuthStore(state => state.user)
+  const entryDate = parseEntryDate(user?.entryTime)
+  const spec = resolveRangeSpec(range, entryDate)
+  const dates = enabled ? getWorkdaysInRange(spec.start, spec.end) : []
+  const { rows: emptyBuckets, resolveKey } = buildBucketsForSpec(spec)
 
   return useQueries({
     queries: dates.map(date => ({
@@ -88,9 +164,8 @@ export function useYearlyUtData(enabled: boolean): YearlyUtData {
       staleTime: 5 * 60 * 1000,
     })),
     combine: results => {
-      const monthlyData = buildEmptyMonthlyData(year)
       const projectTotals = new Map<number, { name: string; total: number }>()
-      const monthlyProjectMap = new Map<string, Map<number, number>>()
+      const bucketProjectMap = new Map<string, Map<number, number>>()
 
       for (let i = 0; i < results.length; i++) {
         const result = results[i]
@@ -106,19 +181,19 @@ export function useYearlyUtData(enabled: boolean): YearlyUtData {
           ) {
             continue
           }
-          const monthIdx = Number(date.slice(5, 7)) - 1
-          const monthKey = `${year}-${String(monthIdx + 1).padStart(2, '0')}`
+          const bucketKey = resolveKey(date)
+          if (!bucketKey) continue
 
           const existing = projectTotals.get(item.projectId)
           if (existing) existing.total += item.val
           else projectTotals.set(item.projectId, { name: item.projectName, total: item.val })
 
-          let monthMap = monthlyProjectMap.get(monthKey)
-          if (!monthMap) {
-            monthMap = new Map()
-            monthlyProjectMap.set(monthKey, monthMap)
+          let bucketMap = bucketProjectMap.get(bucketKey)
+          if (!bucketMap) {
+            bucketMap = new Map()
+            bucketProjectMap.set(bucketKey, bucketMap)
           }
-          monthMap.set(item.projectId, (monthMap.get(item.projectId) ?? 0) + item.val)
+          bucketMap.set(item.projectId, (bucketMap.get(item.projectId) ?? 0) + item.val)
         }
       }
 
@@ -146,13 +221,14 @@ export function useYearlyUtData(enabled: boolean): YearlyUtData {
       }
 
       const restProjectIds = new Set(restProjects.map(([id]) => id))
-      for (const row of monthlyData) {
-        const monthMap = monthlyProjectMap.get(row.monthKey)
+      const bucketRows = emptyBuckets.map(row => ({ ...row }))
+      for (const row of bucketRows) {
+        const bucketMap = bucketProjectMap.get(row.bucketKey as string)
         for (const project of projects) {
           row[project.key] = 0
         }
-        if (!monthMap) continue
-        for (const [projectId, val] of monthMap) {
+        if (!bucketMap) continue
+        for (const [projectId, val] of bucketMap) {
           if (restProjectIds.has(projectId)) {
             row[OTHERS_KEY] = round1((row[OTHERS_KEY] as number) + val)
           } else {
@@ -166,16 +242,6 @@ export function useYearlyUtData(enabled: boolean): YearlyUtData {
         Array.from(projectTotals.values()).reduce((sum, p) => sum + p.total, 0),
       )
 
-      let busiestMonth = ''
-      let busiestSum = -1
-      for (const row of monthlyData) {
-        const sum = projects.reduce((s, p) => s + (row[p.key] as number), 0)
-        if (sum > busiestSum) {
-          busiestSum = sum
-          busiestMonth = row.monthLabel
-        }
-      }
-
       const namedProjects = projects.filter(p => p.key !== OTHERS_KEY)
       const top3: Array<YearlyTopProject> = namedProjects.slice(0, 3).map(p => ({
         name: p.name,
@@ -188,18 +254,21 @@ export function useYearlyUtData(enabled: boolean): YearlyUtData {
         : null
 
       return {
-        year,
-        monthlyData,
+        range,
+        granularity: spec.granularity,
+        start: spec.start,
+        end: spec.end,
+        bucketRows,
         projects,
         stats: {
           totalUt,
           projectCount: projectTotals.size,
-          busiestMonth: busiestSum > 0 ? busiestMonth : '-',
           topProject,
           top3,
         },
         isPending: enabled && results.some(r => r.isPending),
         isError: results.some(r => r.isError),
+        entryDateMissing: spec.entryDateMissing,
       }
     },
   })
