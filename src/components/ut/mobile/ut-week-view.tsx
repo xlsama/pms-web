@@ -19,6 +19,7 @@ import { useCalendarData } from '@/hooks/use-ut'
 import { isWorkday } from '@/lib/ut-utils'
 import { useUtStore } from '@/stores/ut'
 
+import { UtProjectSearch } from '../search/ut-project-search'
 import { UtDayCard } from './ut-day-card'
 import { UtDayDrawer } from './ut-day-drawer'
 
@@ -94,15 +95,13 @@ export function UtWeekView() {
               </Button>
             </div>
 
-            {/* Right: Today button */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 shrink-0 px-3 text-sm"
-              onClick={goToToday}
-            >
-              本周
-            </Button>
+            {/* Right: Search + Today */}
+            <div className="flex shrink-0 items-center gap-1">
+              <UtProjectSearch />
+              <Button variant="outline" size="sm" className="h-7 px-3 text-sm" onClick={goToToday}>
+                本周
+              </Button>
+            </div>
           </div>
         </div>
       </div>

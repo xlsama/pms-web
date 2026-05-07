@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import { useUtStore } from '@/stores/ut'
 import type { DailyData } from '@/types/ut'
 
+import { UtProjectSearch } from '../search/ut-project-search'
 import { UtDayCell } from './ut-day-cell'
 import { UtDayPopover } from './ut-day-popover'
 
@@ -159,13 +160,16 @@ export function UtCalendar() {
             今天
           </Button>
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon-sm" onClick={() => navigateMonth(-1)}>
-            <ChevronLeft className="size-4" />
-          </Button>
-          <Button variant="ghost" size="icon-sm" onClick={() => navigateMonth(1)}>
-            <ChevronRight className="size-4" />
-          </Button>
+        <div className="flex items-center gap-2">
+          <UtProjectSearch />
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon-sm" onClick={() => navigateMonth(-1)}>
+              <ChevronLeft className="size-4" />
+            </Button>
+            <Button variant="ghost" size="icon-sm" onClick={() => navigateMonth(1)}>
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
