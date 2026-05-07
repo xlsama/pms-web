@@ -33,6 +33,7 @@ export function UtCalendar() {
     currentDate,
     setCurrentDate,
     setFocusedDate,
+    setFocusedDateOnly,
     selectedDate,
     setSelectedDate,
     setPrefilledProject,
@@ -130,7 +131,7 @@ export function UtCalendar() {
       handlePopoverClose()
       return
     }
-    setFocusedDate(date)
+    setFocusedDateOnly(date)
     setSelectedDate(date)
     setPrefilledProject(null)
     setAnchorEl(element)

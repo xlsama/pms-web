@@ -11,6 +11,8 @@ interface UtState {
   // Focused date — user's current focus (drives sidebar selected ring + main calendar persistent focus ring)
   focusedDate: string
   setFocusedDate: (date: string) => void
+  // Update focusedDate without syncing currentDate — for clicks on out-of-month cells visible in the main calendar grid
+  setFocusedDateOnly: (date: string) => void
 
   // Selected date for form
   selectedDate: string | null
@@ -52,6 +54,7 @@ export const useUtStore = create<UtState>()(set => ({
         highlightUnfilled: false,
       }
     }),
+  setFocusedDateOnly: focusedDate => set({ focusedDate, highlightUnfilled: false }),
 
   selectedDate: null,
   setSelectedDate: selectedDate => set({ selectedDate }),
