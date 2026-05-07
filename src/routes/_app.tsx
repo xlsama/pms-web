@@ -4,7 +4,6 @@ import { ChartNoAxesColumnIncreasing } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { AppSidebar } from '@/components/app-sidebar'
-import { ModeToggle } from '@/components/theme-toggle'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -12,6 +11,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { Skeleton } from '@/components/ui/skeleton'
 import { UtDndProvider } from '@/components/ut/dnd/dnd-provider'
 import { RejectedUtDialog } from '@/components/ut/rejected-ut-dialog'
+import { UtSummaryMenu } from '@/components/ut/ut-summary-menu'
 import { UtYearlyChartDialog } from '@/components/ut/yearly-chart/ut-yearly-chart-dialog'
 import { useCalendarData } from '@/hooks/use-ut'
 import { countWorkdaysInRange } from '@/lib/ut-utils'
@@ -120,7 +120,7 @@ function AppLayout() {
               >
                 <ChartNoAxesColumnIncreasing />
               </Button>
-              <ModeToggle />
+              <UtSummaryMenu />
             </div>
           </header>
 
