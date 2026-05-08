@@ -21,7 +21,7 @@ export function SidebarCalendar() {
         setFocusedDate(dateStr)
         setFlashDate(dateStr)
       }}
-      className="rounded-md border [--cell-size:--spacing(8)]"
+      className="rounded-md border [--cell-size:--spacing(9)]"
       classNames={{ root: 'w-full' }}
     />
   )
