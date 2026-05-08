@@ -28,7 +28,7 @@ export function UtDayCard({ date, isToday, isUnfilled, dailyData, onClick }: UtD
         isDisabled
           ? 'cursor-not-allowed bg-muted/50 dark:bg-muted'
           : 'cursor-pointer hover:border-primary/30',
-        isToday && 'ring-1 ring-primary/40 dark:ring-primary/30',
+        isToday && 'ring-1 ring-primary/25 dark:ring-primary/30',
         isUnfilled && !isDisabled && 'bg-orange-50/60 dark:bg-orange-500/10',
       )}
       onClick={isDisabled ? undefined : onClick}
