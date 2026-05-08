@@ -112,7 +112,7 @@ export function UtWeekView() {
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.2}
         onDragEnd={handleDragEnd}
-        className="flex-1 space-y-2 overflow-auto px-4 pb-4"
+        className="flex-1 space-y-2 overflow-auto px-4 pt-px pb-4"
       >
         {weekDays.map(day => {
           const dateStr = format(day, 'yyyy-MM-dd')
