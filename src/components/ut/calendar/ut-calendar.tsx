@@ -154,15 +154,9 @@ export function UtCalendar() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 dark:border-gray-800">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-medium">
-            {format(currentDate, 'yyyy年M月', { locale: zhCN })}
-          </h2>
           <Button variant="outline" size="sm" onClick={goToToday}>
             今天
           </Button>
-        </div>
-        <div className="flex items-center gap-2">
-          <UtProjectSearch />
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon-sm" onClick={() => navigateMonth(-1)}>
               <ChevronLeft className="size-4" />
@@ -171,7 +165,11 @@ export function UtCalendar() {
               <ChevronRight className="size-4" />
             </Button>
           </div>
+          <h2 className="text-xl font-medium">
+            {format(currentDate, 'yyyy年M月', { locale: zhCN })}
+          </h2>
         </div>
+        <UtProjectSearch />
       </div>
 
       {/* Weekday header */}
