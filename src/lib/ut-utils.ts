@@ -64,6 +64,11 @@ export function isFutureDate(date: string): boolean {
   return date > today
 }
 
+/** 判断日期是否禁止填写 UT（休息/节假日或未来日期） */
+export function isUtDateDisabled(date: string): boolean {
+  return getAdjustmentType(date) === 'rest' || isFutureDate(date)
+}
+
 /** 调休类型：'work' = 调休上班（周末）, 'rest' = 周末或节假日休息, null = 普通工作日 */
 export function getAdjustmentType(date: string): 'work' | 'rest' | null {
   const workday = isChineseWorkday(date)

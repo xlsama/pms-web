@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { useCalendarData } from '@/hooks/use-ut'
-import { getAdjustmentType, isFutureDate, isWorkday } from '@/lib/ut-utils'
+import { getAdjustmentType, isUtDateDisabled, isWorkday } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
 import { useUtStore } from '@/stores/ut'
 import type { DailyData } from '@/types/ut'
@@ -260,17 +260,17 @@ function DroppableDay({
   onFlashEnd,
   isUnfilled,
 }: DroppableDayProps) {
+  const adjustment = getAdjustmentType(date)
+  const isDisabled = isUtDateDisabled(date)
+
   const { isOver, setNodeRef } = useDroppable({
     id: `day-${date}`,
+    disabled: isDisabled,
     data: {
       type: 'calendar-day',
       date,
     },
   })
-
-  const adjustment = getAdjustmentType(date)
-  const isRest = adjustment === 'rest'
-  const isDisabled = isRest || isFutureDate(date)
 
   return (
     <div

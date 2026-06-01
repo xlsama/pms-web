@@ -2,7 +2,7 @@ import { format } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getAdjustmentType, getDateLabel, isFutureDate } from '@/lib/ut-utils'
+import { getAdjustmentType, getDateLabel, isUtDateDisabled } from '@/lib/ut-utils'
 import { cn } from '@/lib/utils'
 import type { DailyData } from '@/types/ut'
 
@@ -18,7 +18,7 @@ export function UtDayCard({ date, isToday, isUnfilled, dailyData, onClick }: UtD
   const dateObj = new Date(date)
   const hasData = dailyData && dailyData.records.length > 0
   const adjustment = getAdjustmentType(date)
-  const isDisabled = adjustment === 'rest' || isFutureDate(date)
+  const isDisabled = isUtDateDisabled(date)
   const { text: lunarText, isFestival } = getDateLabel(date)
 
   return (

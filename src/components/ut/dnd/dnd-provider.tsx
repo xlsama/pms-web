@@ -9,7 +9,7 @@ import {
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import type { ReactNode } from 'react'
 
-import { isFutureDate } from '@/lib/ut-utils'
+import { isUtDateDisabled } from '@/lib/ut-utils'
 import { useUtStore } from '@/stores/ut'
 import type { Project } from '@/types/ut'
 
@@ -55,8 +55,9 @@ export function UtDndProvider({ children, onDrop }: DndProviderProps) {
     ) {
       const project = active.data.current.project as Project
       const date = over.data.current.date as string
-      if (isFutureDate(date)) return
-      onDrop?.(project, date)
+      if (!isUtDateDisabled(date)) {
+        onDrop?.(project, date)
+      }
     }
 
     setDraggedProject(null)
