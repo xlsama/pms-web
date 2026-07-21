@@ -47,6 +47,10 @@ export const request = ofetch.create({
       useAuthStore.getState().clearAuth()
       window.location.href = '/login'
       return
+    } else if (status === 404) {
+      const notFoundError = new Error(data?.message || '页面不存在')
+      Object.assign(notFoundError, { statusCode: 404 })
+      throw notFoundError
     } else if (status === 403) {
       handleError(data.message || '权限不足', error)
     } else if (status >= 500) {

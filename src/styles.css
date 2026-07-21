@@ -127,6 +127,7 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --color-gantt: var(--gantt);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -147,6 +148,7 @@
 }
 
 :root {
+  --gantt: #5a57e6;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -182,6 +184,7 @@
 }
 
 .dark {
+  --gantt: #818cf8;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -310,6 +313,14 @@
         50% 50%;
     }
   }
+}
+
+@utility gantt-stripes {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 7px,
+    color-mix(in oklab, var(--muted-foreground) 8%, transparent) 7px 8px
+  );
 }
 
 @layer base {

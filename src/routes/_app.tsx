@@ -1,6 +1,6 @@
-import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import { Link, Outlet, createFileRoute, redirect, useLocation } from '@tanstack/react-router'
 import { endOfMonth, format, startOfMonth } from 'date-fns'
-import { ChartNoAxesColumnIncreasing } from 'lucide-react'
+import { ChartNoAxesColumnIncreasing, ChevronLeft, ClipboardPenLine } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { AppSidebar } from '@/components/app-sidebar'
@@ -40,6 +40,8 @@ function AppLayout() {
     setHighlightUnfilled,
   } = useUtStore()
   const [chartOpen, setChartOpen] = useState(false)
+  const { pathname } = useLocation()
+  const isWeeklyReport = pathname.startsWith('/weekly-report')
   const monthRange = useMemo(
     () => ({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) }),
     [currentDate],
@@ -112,6 +114,17 @@ function AppLayout() {
             </div>
 
             <div className="flex items-center gap-1">
+              {isWeeklyReport ? (
+                <Button variant="ghost" nativeButton={false} render={<Link to="/" />}>
+                  <ChevronLeft />
+                  <span className="hidden sm:inline">首页</span>
+                </Button>
+              ) : (
+                <Button variant="ghost" nativeButton={false} render={<Link to="/weekly-report" />}>
+                  <ClipboardPenLine />
+                  <span className="hidden sm:inline">周报</span>
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
