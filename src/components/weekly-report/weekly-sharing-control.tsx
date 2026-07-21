@@ -125,7 +125,7 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
           />
         </div>
 
-        <div className="border-b px-4 py-3.5">
+        <div className="px-4 py-3.5">
           <p className="mb-2.5 text-[11.5px] font-bold text-muted-foreground">可见成员</p>
           {groupQuery.isPending ? (
             <Skeleton className="h-10 w-full rounded-lg" />

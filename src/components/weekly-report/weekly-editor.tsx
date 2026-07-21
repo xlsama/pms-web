@@ -407,7 +407,7 @@ function ProjectPickerDialog({
             className="pl-9"
             value={search}
             onChange={event => setSearch(event.target.value)}
-            placeholder="搜索项目名称或编号…"
+            placeholder="搜索项目名称…"
           />
         </div>
         <div className="max-h-80 space-y-1 overflow-y-auto">
@@ -430,8 +430,9 @@ function ProjectPickerDialog({
                 <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold">
                   {option.projectName}
                 </span>
-                <span className="shrink-0 font-mono text-[10.5px] text-muted-foreground">
-                  {option.projectCode || '暂无编号'}
+                <span className="shrink-0 text-right text-[11px] text-muted-foreground tabular-nums">
+                  总 {option.projectTotalUt.toFixed(1)} / 剩{' '}
+                  {Math.max(0, option.projectTotalUt - option.projectConfirmedUt).toFixed(1)}
                 </span>
               </button>
             ))
@@ -467,11 +468,6 @@ function ProjectDetailsDialog({
           <DialogTitle className="flex items-center gap-2.5">
             <span className="size-[11px] shrink-0 rounded-[3px] bg-(--rb-key) dark:bg-(--rb-key-d)" />
             <span className="truncate">{project.projectName}</span>
-            {project.projectCode ? (
-              <span className="shrink-0 rounded-md bg-(--rb-key)/10 px-1.5 py-0.5 font-mono text-[10.5px] font-normal text-(--rb-sub) dark:bg-(--rb-key-d)/15 dark:text-(--rb-sub-d)">
-                {project.projectCode}
-              </span>
-            ) : null}
           </DialogTitle>
         </DialogHeader>
 

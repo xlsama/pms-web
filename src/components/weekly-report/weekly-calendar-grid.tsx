@@ -578,11 +578,6 @@ function AssignmentRibbon({
                 <span className="truncate text-[13px] leading-tight font-bold text-(--rb-name) dark:text-(--rb-name-d)">
                   {segment.project.projectName}
                 </span>
-                {!singleDay && segment.project.projectCode ? (
-                  <span className="shrink-0 rounded-[5px] bg-(--rb-key)/12 px-1.5 py-px font-mono text-[9.5px] text-(--rb-sub) dark:bg-(--rb-key-d)/15 dark:text-(--rb-sub-d)">
-                    {segment.project.projectCode}
-                  </span>
-                ) : null}
               </span>
               {!singleDay && segment.project.planContent ? (
                 <span className="relative truncate text-xs leading-tight text-(--rb-sub) dark:text-(--rb-sub-d)">
