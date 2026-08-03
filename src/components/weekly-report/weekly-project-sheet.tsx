@@ -12,8 +12,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useWeeklyProjectAnalytics } from '@/hooks/use-weekly-report'
 import { cn } from '@/lib/utils'
 
-import { ribbonColor, ribbonVars } from './weekly-palette'
-
 /** 桌面并排时面板展开后的宽度（px），内层固定该宽度，仅外层容器补间宽度避免图表反复重排。 */
 const PANEL_WIDTH = 440
 
@@ -116,9 +114,6 @@ function ProjectAnalytics({ projectId }: { projectId: number | null }) {
   const to = format(new Date(), 'yyyy-MM-dd')
   const { data, isPending, isError } = useWeeklyProjectAnalytics(projectId, from, to)
 
-  // 用该项目在色带里的固定色作为面板主题色，与日历中的项目色带呼应
-  const color = data ? ribbonColor(data.project.id) : null
-
   return (
     <>
       <div className="flex flex-wrap items-start justify-between gap-2 p-4 pr-12">
@@ -129,7 +124,7 @@ function ProjectAnalytics({ projectId }: { projectId: number | null }) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 p-4" style={color ? ribbonVars(color) : undefined}>
+      <div className="flex flex-col gap-4 p-4">
         {isPending ? (
           <>
             <Skeleton className="h-36 w-full rounded-xl" />
@@ -221,7 +216,7 @@ function MemberContribution({
                 >
                   {showBar ? (
                     <div
-                      className="absolute inset-y-0 left-0 rounded-lg bg-(--rb-bg) dark:bg-(--rb-bg-d)"
+                      className="absolute inset-y-0 left-0 rounded-lg bg-gantt/10"
                       style={{ width: `${Math.max(pct * 100, 0)}%` }}
                     />
                   ) : null}

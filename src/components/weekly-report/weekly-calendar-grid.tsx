@@ -18,6 +18,7 @@ import {
   ChartNoAxesColumnIncreasing,
   ChevronLeft,
   ChevronRight,
+  Lock,
   Plus,
 } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
@@ -34,31 +35,67 @@ import {
 import { leadingPunctuationInset } from '@/lib/optical-align'
 import { cn } from '@/lib/utils'
 
-import { ribbonColor, ribbonVars } from './weekly-palette'
-import type { RibbonColor } from './weekly-palette'
-
-export interface WeeklyCalendarProject {
-  projectId: number
-  projectName: string
-  projectCode: string | null
-  planContent: string | null
-  days: Array<{ workDate: string; assigned: boolean; workday: boolean }>
-}
+import type { BoardProject, CellKind, DayQuota } from './weekly-board'
 
 interface WeekDay {
   workDate: string
   workday: boolean
 }
 
+/**
+ * 颜色只表达一件事：这一格处在什么状态。
+ * 三个实际状态的底色与 UT 日历页一致（见 `@/lib/ut-utils` 的 getStatusColorClass），
+ * 计划态用品牌色淡底。项目身份只靠名称，不再给每个项目分配颜色——
+ * 一屏十几条不同颜色的色带会把「黄=待审批、绿=已通过」这个真正要读的信号淹掉。
+ */
+const CELL_STYLES: Record<CellKind, { surface: string; label: string; sub: string }> = {
+  plan: {
+    // 深浅要和 yellow-100 / green-100 那一档相当，太淡色带边界会糊在白底上
+    surface: 'bg-gantt/14 dark:bg-gantt/22',
+    label: 'text-gantt',
+    sub: 'text-muted-foreground',
+  },
+  check: {
+    surface: 'bg-yellow-100 dark:bg-yellow-900/50',
+    label: 'text-yellow-800 dark:text-yellow-200',
+    sub: 'text-yellow-700/75 dark:text-yellow-200/70',
+  },
+  confirmed: {
+    surface: 'bg-green-100 dark:bg-green-900/50',
+    label: 'text-green-800 dark:text-green-200',
+    sub: 'text-green-700/75 dark:text-green-200/70',
+  },
+  rejected: {
+    surface: 'bg-red-100 dark:bg-red-900/50',
+    label: 'text-red-800 dark:text-red-200',
+    sub: 'text-red-700/75 dark:text-red-200/70',
+  },
+}
+
+const KIND_LABEL: Record<CellKind, string> = {
+  plan: '计划',
+  check: '待审批',
+  confirmed: '已通过',
+  rejected: '已驳回',
+}
+
 interface AssignmentSegment {
-  project: WeeklyCalendarProject
-  color: RibbonColor
+  project: BoardProject
   dates: Array<string>
   startIndex: number
   endIndex: number
   row: number
-  /** 同一项目内的第几段，>0 显示「续」标记 */
-  segIndex: number
+  kind: CellKind
+  /** 已提交（待审批 / 已通过）：只读，不能拖动也不能取消 */
+  locked: boolean
+  /** 属于周报草稿，可拖拽调整日期 */
+  assigned: boolean
+  /** 段内实际 UT 合计 */
+  actualUt: number
+  /** 段内预估 UT 合计 */
+  plannedUt: number
+  /** 当天额度已被实际 UT 占满，这段计划无法兑现 */
+  unfulfilled: boolean
 }
 
 interface ActiveDrag {
@@ -85,8 +122,9 @@ const pointerFirstCollision: CollisionDetection = args => {
 }
 
 interface WeeklyCalendarGridProps {
-  projects: Array<WeeklyCalendarProject>
+  projects: Array<BoardProject>
   weekDays: Array<WeekDay>
+  quotaByDate: Map<string, DayQuota>
   editable: boolean
   selectedProjectId?: number | null
   onAddProject: (workDate: string) => void
@@ -105,6 +143,7 @@ interface WeeklyCalendarGridProps {
 export function WeeklyCalendarGrid({
   projects,
   weekDays,
+  quotaByDate,
   editable,
   selectedProjectId,
   onAddProject,
@@ -129,7 +168,7 @@ export function WeeklyCalendarGrid({
   } | null>(null)
   const suppressClick = useRef(false)
 
-  const segments = useMemo(() => buildSegments(projects, weekDays), [projects, weekDays])
+  const segments = useMemo(() => buildSegments(projects), [projects])
   const rows = projects.length
   const isEmpty = rows === 0
 
@@ -219,11 +258,11 @@ export function WeeklyCalendarGrid({
     if (!suppressClick.current) onAddProject(workDate)
   }
 
-  const activeVars = activeDrag ? ribbonVars(activeDrag.segment.color) : undefined
   // 拖动中的落点预览：松手后段将覆盖的日期范围与合法性
   const preview = useMemo(
-    () => (activeDrag && overDate ? buildDragPreview(activeDrag, overDate, weekDays) : null),
-    [activeDrag, overDate, weekDays],
+    () =>
+      activeDrag && overDate ? buildDragPreview(activeDrag, overDate, weekDays, quotaByDate) : null,
+    [activeDrag, overDate, weekDays, quotaByDate],
   )
 
   return (
@@ -258,12 +297,15 @@ export function WeeklyCalendarGrid({
         >
           <div className="grid grid-cols-7 border-b bg-muted/30">
             {weekDays.map(day => (
-              <DayHeaderCell key={day.workDate} day={day} />
+              <DayHeaderCell key={day.workDate} day={day} quota={quotaByDate.get(day.workDate)} />
             ))}
           </div>
 
           {isEmpty ? (
-            <EmptyCanvas editable={editable} onAdd={() => addProject(defaultAddDate(weekDays))} />
+            <EmptyCanvas
+              editable={editable}
+              onAdd={() => addProject(defaultAddDate(weekDays, quotaByDate))}
+            />
           ) : (
             <div
               className="relative grid flex-1 grid-cols-7 py-1.5"
@@ -274,6 +316,7 @@ export function WeeklyCalendarGrid({
                   key={day.workDate}
                   day={day}
                   columnIndex={index}
+                  quota={quotaByDate.get(day.workDate)}
                   editable={editable}
                   dragging={activeDrag !== null}
                   onAddProject={() => addProject(day.workDate)}
@@ -302,13 +345,12 @@ export function WeeklyCalendarGrid({
                   className={cn(
                     'pointer-events-none z-10 m-1 rounded-[9px] border-[1.5px] border-dashed',
                     preview.valid
-                      ? 'border-(--rb-key)/55 bg-(--rb-key)/10 dark:border-(--rb-key-d)/55 dark:bg-(--rb-key-d)/12'
+                      ? 'border-gantt/55 bg-gantt/10'
                       : 'border-destructive/50 bg-destructive/10 dark:bg-destructive/15',
                   )}
                   style={{
                     gridColumn: `${preview.start + 1} / ${preview.end + 2}`,
                     gridRow: activeDrag.segment.row + 1,
-                    ...activeVars,
                   }}
                 />
               ) : null}
@@ -321,7 +363,7 @@ export function WeeklyCalendarGrid({
             type="button"
             data-weekly-interactive
             className="mx-2 mb-2 flex h-10 w-[calc(100%-16px)] items-center justify-center gap-2 rounded-[10px] border-[1.5px] border-dashed text-[13px] font-semibold text-muted-foreground transition-colors hover:border-gantt hover:bg-gantt/5 hover:text-gantt"
-            onClick={() => addProject(defaultAddDate(weekDays))}
+            onClick={() => addProject(defaultAddDate(weekDays, quotaByDate))}
           >
             <Plus className="size-4" />
             添加项目到本周
@@ -361,6 +403,7 @@ export function WeeklyCalendarGrid({
       <MobileDayList
         projects={projects}
         weekDays={weekDays}
+        quotaByDate={quotaByDate}
         editable={editable}
         onAddProject={addProject}
         onOpenProject={onOpenProject}
@@ -373,8 +416,7 @@ export function WeeklyCalendarGrid({
             <span
               className="size-2 rounded-[2px]"
               style={{
-                background:
-                  preview && !preview.valid ? '#F87171' : activeDrag.segment.color.keyDark,
+                background: preview && !preview.valid ? '#F87171' : '#818CF8',
               }}
             />
             {activeDrag.segment.project.projectName} ·{' '}
@@ -390,7 +432,43 @@ export function WeeklyCalendarGrid({
   )
 }
 
-function DayHeaderCell({ day }: { day: WeekDay }) {
+/**
+ * 容量条：一天固定 1.0 UT，实心段为已提交（绿=已通过、黄=待审批），
+ * 浅色段为计划占用，留白表示这天完全没安排。
+ */
+function DayCapacityBar({ quota }: { quota: DayQuota }) {
+  const parts = [
+    quota.confirmedUt > 0 ? `已通过 ${quota.confirmedUt.toFixed(1)}` : null,
+    quota.checkUt > 0 ? `待审批 ${quota.checkUt.toFixed(1)}` : null,
+    quota.plannedUt > 0 ? `计划 ${quota.plannedUt.toFixed(1)}` : null,
+  ].filter(Boolean)
+
+  return (
+    <span
+      className="mt-0.5 flex h-1 w-full overflow-hidden rounded-full bg-border/60"
+      title={parts.length > 0 ? `${parts.join(' · ')} UT` : '未安排'}
+      aria-label={parts.length > 0 ? `${parts.join('，')} UT` : '未安排'}
+    >
+      {quota.confirmedUt > 0 ? (
+        <span
+          className="h-full bg-green-500 dark:bg-green-400"
+          style={{ width: `${quota.confirmedUt * 100}%` }}
+        />
+      ) : null}
+      {quota.checkUt > 0 ? (
+        <span
+          className="h-full bg-yellow-500 dark:bg-yellow-400"
+          style={{ width: `${quota.checkUt * 100}%` }}
+        />
+      ) : null}
+      {quota.plannedUt > 0 ? (
+        <span className="h-full bg-gantt/35" style={{ width: `${quota.plannedUt * 100}%` }} />
+      ) : null}
+    </span>
+  )
+}
+
+function DayHeaderCell({ day, quota }: { day: WeekDay; quota?: DayQuota }) {
   const date = parseISO(day.workDate)
   const today = isToday(date)
   const dow = date.getDay()
@@ -436,6 +514,7 @@ function DayHeaderCell({ day }: { day: WeekDay }) {
           </span>
         ) : null}
       </span>
+      {day.workday && quota ? <DayCapacityBar quota={quota} /> : null}
     </div>
   )
 }
@@ -443,12 +522,14 @@ function DayHeaderCell({ day }: { day: WeekDay }) {
 function DayColumn({
   day,
   columnIndex,
+  quota,
   editable,
   dragging,
   onAddProject,
 }: {
   day: WeekDay
   columnIndex: number
+  quota?: DayQuota
   editable: boolean
   dragging: boolean
   onAddProject: () => void
@@ -460,7 +541,9 @@ function DayColumn({
     disabled: !day.workday,
     data: { type: 'weekly-day', workDate: day.workDate },
   })
-  const clickable = day.workday && editable
+  // 额度用完的那天不能再加项目：一天最多排的项目数 = 剩余额度 ÷ 0.1
+  const full = (quota?.addableCount ?? 1) <= 0
+  const clickable = day.workday && editable && !full
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (!clickable) return
@@ -498,6 +581,11 @@ function DayColumn({
           <Plus className="size-3.5" />
           添加项目
         </span>
+      ) : full && day.workday && editable && !dragging ? (
+        <span className="pointer-events-none absolute inset-x-1 bottom-2 flex items-center justify-center gap-1 py-1.5 text-xs font-semibold text-muted-foreground/0 transition-colors group-hover/col:text-muted-foreground">
+          <Lock className="size-3" />
+          UT 已满
+        </span>
       ) : null}
     </div>
   )
@@ -516,28 +604,43 @@ function AssignmentRibbon({
   onOpen: () => void
   onView: () => void
 }) {
+  // 已提交的格子是实际 UT 的投影，不属于草稿，不能拖动也不能取消
+  const draggable = editable && !segment.locked && segment.assigned
   const move = useDraggable({
     id: `weekly-assignment-${segment.project.projectId}-${segment.dates[0]}`,
     data: { type: 'weekly-assignment', segment },
-    disabled: !editable,
+    disabled: !draggable,
   })
   const resizeStart = useDraggable({
     id: `weekly-resize-start-${segment.project.projectId}-${segment.dates[0]}`,
     data: { type: 'weekly-resize', edge: 'start', segment },
-    disabled: !editable,
+    disabled: !draggable,
   })
   const resizeEnd = useDraggable({
     id: `weekly-resize-end-${segment.project.projectId}-${segment.dates[0]}`,
     data: { type: 'weekly-resize', edge: 'end', segment },
-    disabled: !editable,
+    disabled: !draggable,
   })
   const singleDay = segment.dates.length <= 1
   const dragging = move.isDragging || resizeStart.isDragging || resizeEnd.isDragging
+  const style = CELL_STYLES[segment.kind]
+  const isPlan = segment.kind === 'plan'
+  // 有数字 = 事实，没数字 = 计划：预估 UT 是跨项目均分出来的，印在色带上会随增删项目跳动
+  const utText = isPlan ? null : `${segment.actualUt.toFixed(1)} UT`
+  const hint = segment.unfulfilled
+    ? '当天 UT 已满，这段计划没兑现'
+    : segment.kind === 'rejected'
+      ? '这笔 UT 已被驳回，去 UT 日历重新提交'
+      : segment.locked
+        ? `已提交 ${segment.actualUt.toFixed(1)} UT，要改请去 UT 日历`
+        : null
+  // 状态提示优先于计划内容；单日色带太窄放不下第二行，改由 title 兜底
+  const summary = hint ?? (singleDay ? null : segment.project.planContent)
   // 首字是全角开括号时把它悬挂出去，让项目名和下方计划内容视觉左对齐
-  const nameInset =
-    segment.segIndex > 0
-      ? 0
-      : leadingPunctuationInset(segment.project.projectName, { fontSize: 13, fontWeight: 700 })
+  const nameInset = leadingPunctuationInset(segment.project.projectName, {
+    fontSize: 13,
+    fontWeight: 700,
+  })
 
   return (
     <ContextMenu>
@@ -548,54 +651,69 @@ function AssignmentRibbon({
         style={{
           gridColumn: `${segment.startIndex + 1} / ${segment.endIndex + 2}`,
           gridRow: segment.row + 1,
-          ...ribbonVars(segment.color),
         }}
       >
         <button
           ref={move.setNodeRef}
           type="button"
           className={cn(
-            'relative flex size-full min-w-0 flex-col justify-center gap-px overflow-hidden rounded-[9px] px-3.5 pl-[18px] text-left transition-shadow',
+            'relative flex size-full min-w-0 flex-col justify-center gap-px overflow-hidden rounded-[9px] px-3.5 text-left transition-shadow',
             dragging
-              ? 'border-[1.5px] border-dashed border-(--rb-key)/45 bg-(--rb-key)/5 dark:border-(--rb-key-d)/45 dark:bg-(--rb-key-d)/8'
-              : 'bg-(--rb-bg) shadow-xs after:absolute after:inset-0 after:bg-(--rb-key) after:opacity-0 after:transition-opacity hover:shadow-sm hover:after:opacity-6 dark:bg-(--rb-bg-d) dark:after:bg-(--rb-key-d)',
+              ? 'border-[1.5px] border-dashed border-gantt/45 bg-gantt/5'
+              : cn(
+                  style.surface,
+                  'shadow-xs after:absolute after:inset-0 after:bg-foreground after:opacity-0 after:transition-opacity hover:shadow-sm hover:after:opacity-4',
+                ),
+            segment.unfulfilled && !dragging && 'opacity-55 saturate-50',
             selected &&
               !dragging &&
-              'shadow-[0_0_0_1.5px_var(--rb-key),0_8px_18px_-8px_var(--rb-key)] dark:shadow-[0_0_0_1.5px_var(--rb-key-d),0_8px_18px_-8px_var(--rb-key-d)]',
-            !editable && 'cursor-pointer',
-            'focus-visible:ring-2 focus-visible:ring-(--rb-key) focus-visible:outline-none dark:focus-visible:ring-(--rb-key-d)',
+              'shadow-[0_0_0_1.5px_var(--gantt),0_8px_18px_-8px_var(--gantt)]',
+            !draggable && 'cursor-pointer',
+            'focus-visible:ring-2 focus-visible:ring-gantt focus-visible:outline-none',
           )}
-          aria-label={`${segment.project.projectName}，安排${segment.dates.length}天${editable ? '，拖动可调整日期' : ''}`}
+          title={hint ?? undefined}
+          aria-label={`${segment.project.projectName}，${KIND_LABEL[segment.kind]}，${segment.dates.length}天${
+            utText ? `，实际 ${utText}` : ''
+          }${segment.locked ? '，已提交不可修改' : draggable ? '，拖动可调整日期' : ''}`}
           onClick={onOpen}
           {...move.listeners}
           {...move.attributes}
         >
           {dragging ? null : (
             <>
-              <span className="absolute inset-y-0 left-0 w-1 rounded-l-[9px] bg-(--rb-key) dark:bg-(--rb-key-d)" />
               <span className="relative flex min-w-0 items-center gap-1.5">
-                {segment.segIndex > 0 ? (
-                  <span className="shrink-0 rounded-[5px] bg-(--rb-key)/14 px-1 font-mono text-[9px] text-(--rb-sub) dark:bg-(--rb-key-d)/14 dark:text-(--rb-sub-d)">
-                    续
-                  </span>
-                ) : null}
                 <span
-                  className="truncate text-[13px] leading-tight font-bold text-(--rb-name) dark:text-(--rb-name-d)"
+                  className={cn(
+                    'truncate text-[13px] leading-tight font-bold',
+                    style.label,
+                    segment.unfulfilled && 'line-through',
+                  )}
                   style={nameInset ? { marginInlineStart: `-${nameInset}px` } : undefined}
                 >
                   {segment.project.projectName}
                 </span>
+                {utText ? (
+                  <span
+                    className={cn(
+                      'ml-auto flex shrink-0 items-center gap-1 text-[11px] font-semibold tabular-nums',
+                      style.sub,
+                    )}
+                  >
+                    {segment.locked ? <Lock className="size-2.5" /> : null}
+                    {utText}
+                  </span>
+                ) : null}
               </span>
-              {!singleDay && segment.project.planContent ? (
-                <span className="relative truncate text-xs leading-tight text-(--rb-sub) dark:text-(--rb-sub-d)">
-                  {segment.project.planContent}
+              {summary ? (
+                <span className={cn('relative truncate text-xs leading-tight', style.sub)}>
+                  {summary}
                 </span>
               ) : null}
             </>
           )}
         </button>
 
-        {editable && !dragging ? (
+        {draggable && !dragging ? (
           <>
             <button
               ref={resizeStart.setNodeRef}
@@ -605,7 +723,7 @@ function AssignmentRibbon({
               {...resizeStart.listeners}
               {...resizeStart.attributes}
             >
-              <span className="ml-1 h-[58%] w-1.5 rounded-[4px] bg-white opacity-0 shadow-sm ring-1 ring-(--rb-key)/40 transition-opacity group-hover/ribbon:opacity-100 group-focus-visible/handle:opacity-100 dark:bg-[#EDEFF3] dark:ring-(--rb-key-d)/50" />
+              <span className="ml-1 h-[58%] w-1.5 rounded-[4px] bg-white opacity-0 shadow-sm ring-1 ring-gantt/40 transition-opacity group-hover/ribbon:opacity-100 group-focus-visible/handle:opacity-100 dark:bg-[#EDEFF3]" />
             </button>
             <button
               ref={resizeEnd.setNodeRef}
@@ -615,7 +733,7 @@ function AssignmentRibbon({
               {...resizeEnd.listeners}
               {...resizeEnd.attributes}
             >
-              <span className="mr-1 h-[58%] w-1.5 rounded-[4px] bg-white opacity-0 shadow-sm ring-1 ring-(--rb-key)/40 transition-opacity group-hover/ribbon:opacity-100 group-focus-visible/handle:opacity-100 dark:bg-[#EDEFF3] dark:ring-(--rb-key-d)/50" />
+              <span className="mr-1 h-[58%] w-1.5 rounded-[4px] bg-white opacity-0 shadow-sm ring-1 ring-gantt/40 transition-opacity group-hover/ribbon:opacity-100 group-focus-visible/handle:opacity-100 dark:bg-[#EDEFF3]" />
             </button>
           </>
         ) : null}
@@ -660,13 +778,15 @@ function EmptyCanvas({ editable, onAdd }: { editable: boolean; onAdd: () => void
 function MobileDayList({
   projects,
   weekDays,
+  quotaByDate,
   editable,
   onAddProject,
   onOpenProject,
   onViewProject,
 }: {
-  projects: Array<WeeklyCalendarProject>
+  projects: Array<BoardProject>
   weekDays: Array<WeekDay>
+  quotaByDate: Map<string, DayQuota>
   editable: boolean
   onAddProject: (workDate: string) => void
   onOpenProject: (projectId: number) => void
@@ -679,10 +799,15 @@ function MobileDayList({
         const today = isToday(date)
         const dow = date.getDay()
         const weekendWorkday = day.workday && (dow === 0 || dow === 6)
+        const quota = quotaByDate.get(day.workDate)
         const dayProjects = projects
-          .map((project, index) => ({ project, color: ribbonColor(index) }))
-          .filter(({ project }) =>
-            project.days.some(item => item.workDate === day.workDate && item.assigned),
+          .map(project => ({
+            project,
+            cell: project.days.find(item => item.workDate === day.workDate),
+          }))
+          .filter(
+            (item): item is { project: BoardProject; cell: BoardProject['days'][number] } =>
+              item.cell?.kind != null,
           )
 
         return (
@@ -725,7 +850,8 @@ function MobileDayList({
                 editable ? (
                   <button
                     type="button"
-                    className="flex items-center gap-1.5 rounded-[11px] border-[1.5px] border-dashed p-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-gantt/50 hover:text-gantt"
+                    disabled={(quota?.addableCount ?? 1) <= 0}
+                    className="flex items-center gap-1.5 rounded-[11px] border-[1.5px] border-dashed p-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-gantt/50 hover:text-gantt disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-border disabled:hover:text-muted-foreground"
                     onClick={() => onAddProject(day.workDate)}
                   >
                     <Plus className="size-3.5" />
@@ -737,27 +863,47 @@ function MobileDayList({
                   </div>
                 )
               ) : (
-                dayProjects.map(({ project, color }) => (
-                  <button
-                    key={project.projectId}
-                    type="button"
-                    style={ribbonVars(color)}
-                    className="relative overflow-hidden rounded-[11px] bg-(--rb-bg) px-3 py-2 pl-3.5 text-left dark:bg-(--rb-bg-d)"
-                    onClick={() =>
-                      editable ? onOpenProject(project.projectId) : onViewProject(project.projectId)
-                    }
-                  >
-                    <span className="absolute inset-y-0 left-0 w-1 bg-(--rb-key) dark:bg-(--rb-key-d)" />
-                    <div className="truncate text-[13px] font-bold text-(--rb-name) dark:text-(--rb-name-d)">
-                      {project.projectName}
-                    </div>
-                    {project.planContent ? (
-                      <div className="truncate text-[11.5px] text-(--rb-sub) dark:text-(--rb-sub-d)">
-                        {project.planContent}
+                dayProjects.map(({ project, cell }) => {
+                  const kind = cell.kind as CellKind
+                  const style = CELL_STYLES[kind]
+                  return (
+                    <button
+                      key={project.projectId}
+                      type="button"
+                      className={cn(
+                        'relative overflow-hidden rounded-[11px] px-3 py-2 text-left',
+                        style.surface,
+                      )}
+                      onClick={() =>
+                        editable
+                          ? onOpenProject(project.projectId)
+                          : onViewProject(project.projectId)
+                      }
+                    >
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <span className={cn('truncate text-[13px] font-bold', style.label)}>
+                          {project.projectName}
+                        </span>
+                        {kind !== 'plan' ? (
+                          <span
+                            className={cn(
+                              'ml-auto flex shrink-0 items-center gap-1 text-[11px] font-semibold tabular-nums',
+                              style.sub,
+                            )}
+                          >
+                            {cell.locked ? <Lock className="size-2.5" /> : null}
+                            {cell.actualUt.toFixed(1)} UT
+                          </span>
+                        ) : null}
                       </div>
-                    ) : null}
-                  </button>
-                ))
+                      {project.planContent ? (
+                        <div className={cn('truncate text-[11.5px]', style.sub)}>
+                          {project.planContent}
+                        </div>
+                      ) : null}
+                    </button>
+                  )
+                })
               )}
             </div>
           </div>
@@ -767,9 +913,14 @@ function MobileDayList({
   )
 }
 
-function defaultAddDate(weekDays: Array<WeekDay>) {
-  const today = weekDays.find(day => day.workday && isToday(parseISO(day.workDate)))
-  return (today ?? weekDays.find(day => day.workday) ?? weekDays[0]).workDate
+/** 默认落点优先今天，其次第一个还有 UT 额度的工作日 */
+function defaultAddDate(weekDays: Array<WeekDay>, quotaByDate: Map<string, DayQuota>) {
+  const hasQuota = (day: WeekDay) => (quotaByDate.get(day.workDate)?.addableCount ?? 1) > 0
+  const today = weekDays.find(
+    day => day.workday && hasQuota(day) && isToday(parseISO(day.workDate)),
+  )
+  const firstOpen = weekDays.find(day => day.workday && hasQuota(day))
+  return (today ?? firstOpen ?? weekDays.find(day => day.workday) ?? weekDays[0]).workDate
 }
 
 /**
@@ -780,6 +931,7 @@ function buildDragPreview(
   drag: ActiveDrag,
   overDate: string,
   weekDays: Array<WeekDay>,
+  quotaByDate: Map<string, DayQuota>,
 ): DragPreview | null {
   const overIndex = weekDays.findIndex(day => day.workDate === overDate)
   if (overIndex < 0) return null
@@ -810,6 +962,17 @@ function buildDragPreview(
   if (weekDays.slice(start, end + 1).some(day => !day.workday)) {
     return { start, end, valid: false, reason: '休息日不能安排项目' }
   }
+  const targets = segment.project.days.slice(start, end + 1)
+  if (targets.some(cell => cell.locked)) {
+    return { start, end, valid: false, reason: '该日已提交 UT，不能改计划' }
+  }
+  // 落到新格子才需要占额度；落回自己原本占的格子不额外消耗
+  const overflow = targets.some(
+    cell => !cell.assigned && (quotaByDate.get(cell.workDate)?.addableCount ?? 0) <= 0,
+  )
+  if (overflow) {
+    return { start, end, valid: false, reason: '当天 UT 已满' }
+  }
   return { start, end, valid: true }
 }
 
@@ -821,43 +984,46 @@ function formatPreviewRange(preview: DragPreview, weekDays: Array<WeekDay>): str
   return `${format(startDate, 'M月d日')} – ${format(endDate, 'M月d日')} · ${days} 天`
 }
 
-function buildSegments(
-  projects: Array<WeeklyCalendarProject>,
-  weekDays: Array<WeekDay>,
-): Array<AssignmentSegment> {
-  const dateIndex = new Map(weekDays.map((day, index) => [day.workDate, index]))
+/**
+ * 把每行的格子切成连续同状态的色带。
+ * 状态变化处必须断开——周三填了 UT 不能把周四周五的计划也一起锁死。
+ */
+function buildSegments(projects: Array<BoardProject>): Array<AssignmentSegment> {
   const segments: Array<AssignmentSegment> = []
 
   projects.forEach((project, row) => {
-    const color = ribbonColor(row)
-    const assignedIndexes = project.days
-      .filter(day => day.assigned)
-      .map(day => dateIndex.get(day.workDate))
-      .filter((index): index is number => index !== undefined)
-      .sort((a, b) => a - b)
-
-    let start = 0
-    let segIndex = 0
-    while (start < assignedIndexes.length) {
-      let end = start
+    let index = 0
+    while (index < project.days.length) {
+      const head = project.days[index]
+      if (head.kind === null) {
+        index++
+        continue
+      }
+      let end = index
       while (
-        end + 1 < assignedIndexes.length &&
-        assignedIndexes[end + 1] === assignedIndexes[end] + 1
+        end + 1 < project.days.length &&
+        project.days[end + 1].kind === head.kind &&
+        project.days[end + 1].assigned === head.assigned &&
+        // 未兑现的那几天要单独成段，否则跨天色带里只有部分天没额度时看不出来
+        project.days[end + 1].unfulfilled === head.unfulfilled
       ) {
         end++
       }
-      const indexes = assignedIndexes.slice(start, end + 1)
+      const cells = project.days.slice(index, end + 1)
       segments.push({
         project,
-        color,
-        dates: indexes.map(index => weekDays[index].workDate),
-        startIndex: indexes[0],
-        endIndex: indexes[indexes.length - 1],
+        dates: cells.map(cell => cell.workDate),
+        startIndex: index,
+        endIndex: end,
         row,
-        segIndex,
+        kind: head.kind,
+        locked: head.locked,
+        assigned: head.assigned,
+        actualUt: cells.reduce((sum, cell) => sum + cell.actualUt, 0),
+        plannedUt: cells.reduce((sum, cell) => sum + cell.plannedUt, 0),
+        unfulfilled: head.unfulfilled,
       })
-      segIndex++
-      start = end + 1
+      index = end + 1
     }
   })
 

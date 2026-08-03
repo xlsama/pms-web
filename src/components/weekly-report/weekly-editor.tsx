@@ -27,8 +27,9 @@ import { useIsDesktop } from '@/hooks/use-mobile'
 import { useSaveWeeklyPlan, useWeeklyProjectOptions } from '@/hooks/use-weekly-report'
 import { cn } from '@/lib/utils'
 
+import { buildLockedCells, buildWeeklyBoard, cellKey } from './weekly-board'
+import type { BoardCell } from './weekly-board'
 import { WeeklyCalendarGrid } from './weekly-calendar-grid'
-import { ribbonColor, ribbonVars } from './weekly-palette'
 import { WeeklyProjectPanel } from './weekly-project-sheet'
 
 interface DraftProject extends Omit<WeeklyPlanProject, 'days'> {
@@ -36,6 +37,8 @@ interface DraftProject extends Omit<WeeklyPlanProject, 'days'> {
 }
 
 function createDraftProjects(plan: WeeklyPlan): Array<DraftProject> {
+  // 已提交 UT 的格子由实际数据接管：不进草稿，也就不会被保存接口回写
+  const locked = buildLockedCells(plan.actuals ?? [])
   return plan.projects.map(project => {
     const existingDays = new Map(project.days.map(day => [day.workDate, day]))
     return {
@@ -44,9 +47,10 @@ function createDraftProjects(plan: WeeklyPlan): Array<DraftProject> {
       resultContent: project.resultContent ?? '',
       days: plan.weekDays.map(day => {
         const existing = existingDays.get(day.workDate)
+        const assigned = existing?.assigned ?? (existing?.plannedUt ?? 0) > 0
         return {
           ...day,
-          assigned: existing?.assigned ?? (existing?.plannedUt ?? 0) > 0,
+          assigned: assigned && !locked.has(cellKey(project.projectId, day.workDate)),
           dayNote: existing?.dayNote ?? '',
         }
       }),
@@ -56,6 +60,10 @@ function createDraftProjects(plan: WeeklyPlan): Array<DraftProject> {
 
 function hasAssignments(project: DraftProject) {
   return project.days.some(day => day.assigned)
+}
+
+function formatDay(workDate: string) {
+  return format(parseISO(workDate), 'M月d日')
 }
 
 function createSaveRequest(projects: Array<DraftProject>, version: number): WeeklyPlanSaveRequest {
@@ -113,8 +121,57 @@ export function WeeklyEditor({
     setAnalyticsProjectId(null)
   }
 
-  const activeProjects = useMemo(() => projects.filter(hasAssignments), [projects])
+  // 计划草稿与实际 UT 合流后的甘特图数据；实际 UT 是只读投影，不参与保存
+  const board = useMemo(
+    () =>
+      buildWeeklyBoard({
+        draft: projects,
+        actuals: plan.actuals ?? [],
+        weekDays: plan.weekDays,
+      }),
+    [projects, plan.actuals, plan.weekDays],
+  )
   const editingProject = projects.find(project => project.projectId === editingProjectId)
+  const editingCells = board.projects.find(project => project.projectId === editingProjectId)?.days
+
+  function cellOf(projectId: number, workDate: string): BoardCell | undefined {
+    return board.projects
+      .find(project => project.projectId === projectId)
+      ?.days.find(day => day.workDate === workDate)
+  }
+
+  /** 计划不能覆盖已提交的 UT，也不能超出当天剩余额度 */
+  function canPlanOn(projectId: number, workDate: string): boolean {
+    const cell = cellOf(projectId, workDate)
+    if (cell?.locked) {
+      toast.error(`${formatDay(workDate)}该项目已提交 UT，不能再排计划`)
+      return false
+    }
+    if (!cell?.assigned && (board.quotaByDate.get(workDate)?.addableCount ?? 1) <= 0) {
+      toast.error(`${formatDay(workDate)}的 UT 已满，无法再安排项目`)
+      return false
+    }
+    return true
+  }
+
+  function openProjectPicker(workDate: string) {
+    if ((board.quotaByDate.get(workDate)?.addableCount ?? 1) <= 0) {
+      toast.error(`${formatDay(workDate)}的 UT 已满，无法再安排项目`)
+      return
+    }
+    setPickerDate(workDate)
+  }
+
+  const plannedProjectIds = useMemo(
+    () => new Set(board.projects.map(project => project.projectId)),
+    [board.projects],
+  )
+
+  function openProject(projectId: number) {
+    // 只在 UT 日历里出现过的项目不在草稿里，没有可编辑的计划，直接看项目分析
+    if (projects.some(project => project.projectId === projectId)) setEditingProjectId(projectId)
+    else setAnalyticsProjectId(projectId)
+  }
 
   // 改动即自动保存（防抖）：不再区分草稿/发布，保存后共享成员实时可见
   const debouncedProjects = useDebounce(projects, { wait: 800 })
@@ -152,6 +209,7 @@ export function WeeklyEditor({
   }
 
   function addProject(option: WeeklyProjectOption, workDate: string) {
+    if (!canPlanOn(option.id, workDate)) return
     setProjects(current => {
       const existing = current.find(project => project.projectId === option.id)
       if (existing) {
@@ -202,6 +260,9 @@ export function WeeklyEditor({
   }
 
   function toggleProjectDay(projectId: number, workDate: string) {
+    const cell = cellOf(projectId, workDate)
+    // 取消已排的日期不占额度，只有新增才需要校验
+    if (!cell?.assigned && !canPlanOn(projectId, workDate)) return
     updateProject(projectId, project => ({
       ...project,
       days: project.days.map(day =>
@@ -226,6 +287,7 @@ export function WeeklyEditor({
       toast.error('休息日不能安排项目')
       return
     }
+    if (!shiftedDates.every(date => canPlanOn(projectId, date))) return
 
     const sourceSet = new Set(dates)
     const targetSet = new Set(shiftedDates)
@@ -265,6 +327,7 @@ export function WeeklyEditor({
       toast.error('休息日不能安排项目')
       return
     }
+    if (!range.every(day => canPlanOn(projectId, day.workDate))) return
 
     const sourceSet = new Set(dates)
     const targetSet = new Set(range.map(day => day.workDate))
@@ -320,12 +383,13 @@ export function WeeklyEditor({
 
       <div className="flex flex-col sm:min-h-0 sm:flex-1 sm:flex-row sm:overflow-hidden sm:rounded-2xl sm:border sm:shadow-xs">
         <WeeklyCalendarGrid
-          projects={activeProjects}
+          projects={board.projects}
           weekDays={plan.weekDays}
+          quotaByDate={board.quotaByDate}
           editable={plan.editable}
           selectedProjectId={editingProjectId}
-          onAddProject={setPickerDate}
-          onOpenProject={setEditingProjectId}
+          onAddProject={openProjectPicker}
+          onOpenProject={openProject}
           onViewProject={setAnalyticsProjectId}
           onMoveSegment={moveSegment}
           onResizeSegment={resizeSegment}
@@ -343,6 +407,7 @@ export function WeeklyEditor({
       {plan.editable && pickerDate ? (
         <ProjectPickerDialog
           workDate={pickerDate}
+          plannedProjectIds={plannedProjectIds}
           open
           onOpenChange={open => !open && setPickerDate(null)}
           onSelect={option => addProject(option, pickerDate)}
@@ -352,10 +417,7 @@ export function WeeklyEditor({
       {plan.editable && editingProject ? (
         <ProjectDetailsDialog
           project={editingProject}
-          colorIndex={Math.max(
-            activeProjects.findIndex(project => project.projectId === editingProject.projectId),
-            0,
-          )}
+          cells={editingCells}
           open
           onOpenChange={open => !open && closeProjectDetails()}
           onContentChange={value =>
@@ -377,13 +439,37 @@ export function WeeklyEditor({
   )
 }
 
+/**
+ * 项目额度进度条：已确认 UT 占项目总 UT 的比例。
+ * 快用完时转琥珀、用尽转红——「剩 0.0」的项目一眼可辨，比只看数字快。
+ */
+function ProjectQuotaBar({ total, confirmed }: { total: number; confirmed: number }) {
+  const ratio = total > 0 ? Math.min(1, confirmed / total) : 0
+  const remaining = Math.max(0, total - confirmed)
+  const tone =
+    total > 0 && remaining <= 0
+      ? 'bg-red-500 dark:bg-red-400'
+      : total > 0 && remaining / total <= 0.1
+        ? 'bg-amber-500 dark:bg-amber-400'
+        : 'bg-gantt/55'
+
+  return (
+    <span className="mt-1 flex h-[3px] w-full overflow-hidden rounded-full bg-border/70">
+      <span className={cn('h-full rounded-full', tone)} style={{ width: `${ratio * 100}%` }} />
+    </span>
+  )
+}
+
 function ProjectPickerDialog({
   workDate,
+  plannedProjectIds,
   open,
   onOpenChange,
   onSelect,
 }: {
   workDate: string
+  /** 本周甘特图里已有的项目，用于打「已排」标 */
+  plannedProjectIds: Set<number>
   open: boolean
   onOpenChange: (open: boolean) => void
   onSelect: (option: WeeklyProjectOption) => void
@@ -393,7 +479,7 @@ function ProjectPickerDialog({
   const { data = [], isPending } = useWeeklyProjectOptions(debouncedSearch)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             添加到 {format(parseISO(workDate), 'M月d日 EEEE', { locale: zhCN })}
@@ -410,32 +496,43 @@ function ProjectPickerDialog({
             placeholder="搜索项目名称…"
           />
         </div>
-        <div className="max-h-80 space-y-1 overflow-y-auto">
+        <div className="max-h-[26rem] space-y-1.5 overflow-y-auto">
           {isPending ? (
             <p className="py-8 text-center text-sm text-muted-foreground">正在加载项目…</p>
           ) : data.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">没有找到匹配项目</p>
           ) : (
-            data.map(option => (
-              <button
-                key={option.id}
-                type="button"
-                className="flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-left hover:bg-muted"
-                onClick={() => onSelect(option)}
-              >
-                <span
-                  className="size-[9px] shrink-0 rounded-[3px]"
-                  style={{ background: ribbonColor(option.id).key }}
-                />
-                <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold">
-                  {option.projectName}
-                </span>
-                <span className="shrink-0 text-right text-[11px] text-muted-foreground tabular-nums">
-                  总 {option.projectTotalUt.toFixed(1)} / 剩{' '}
-                  {Math.max(0, option.projectTotalUt - option.projectConfirmedUt).toFixed(1)}
-                </span>
-              </button>
-            ))
+            data.map(option => {
+              const remaining = Math.max(0, option.projectTotalUt - option.projectConfirmedUt)
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  className="flex w-full items-start gap-3 rounded-[9px] px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                  onClick={() => onSelect(option)}
+                >
+                  <span className="flex min-w-0 flex-1 items-center gap-2 self-center">
+                    <span className="min-w-0 truncate text-[13.5px] font-semibold">
+                      {option.projectName}
+                    </span>
+                    {plannedProjectIds.has(option.id) ? (
+                      <span className="shrink-0 rounded-[5px] bg-gantt/10 px-1.5 py-px text-[10px] font-semibold text-gantt">
+                        已排
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="w-[104px] shrink-0">
+                    <span className="block text-right text-[11px] text-muted-foreground tabular-nums">
+                      总 {option.projectTotalUt.toFixed(1)} / 剩 {remaining.toFixed(1)}
+                    </span>
+                    <ProjectQuotaBar
+                      total={option.projectTotalUt}
+                      confirmed={option.projectConfirmedUt}
+                    />
+                  </span>
+                </button>
+              )
+            })
           )}
         </div>
       </DialogContent>
@@ -445,7 +542,7 @@ function ProjectPickerDialog({
 
 function ProjectDetailsDialog({
   project,
-  colorIndex,
+  cells,
   open,
   onOpenChange,
   onContentChange,
@@ -453,20 +550,19 @@ function ProjectDetailsDialog({
   onRemove,
 }: {
   project: DraftProject
-  colorIndex: number
+  cells?: Array<BoardCell>
   open: boolean
   onOpenChange: (open: boolean) => void
   onContentChange: (value: string) => void
   onToggleDay: (workDate: string) => void
   onRemove: () => void
 }) {
-  const color = ribbonColor(colorIndex)
+  const cellByDate = new Map((cells ?? []).map(cell => [cell.workDate, cell]))
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl" style={ribbonVars(color)}>
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5">
-            <span className="size-[11px] shrink-0 rounded-[3px] bg-(--rb-key) dark:bg-(--rb-key-d)" />
             <span className="truncate">{project.projectName}</span>
           </DialogTitle>
         </DialogHeader>
@@ -476,16 +572,30 @@ function ProjectDetailsDialog({
           <div className="grid grid-cols-7 gap-2">
             {project.days.map(day => {
               const date = parseISO(day.workDate)
+              const cell = cellByDate.get(day.workDate)
+              // 已提交 UT 的那天由日历页说了算，这里只展示状态、不给改
+              const locked = cell?.locked === true
               return day.workday ? (
                 <button
                   key={day.workDate}
                   type="button"
                   aria-pressed={day.assigned}
+                  disabled={locked}
+                  title={
+                    locked ? `已提交 ${cell?.actualUt.toFixed(1)} UT，去 UT 日历修改` : undefined
+                  }
                   className={cn(
                     'flex h-[46px] flex-col items-center justify-center gap-px rounded-[10px] border text-[13px] font-bold transition-colors',
-                    day.assigned
-                      ? 'border-transparent bg-(--rb-key) text-white shadow-sm dark:bg-(--rb-key-d) dark:text-background'
-                      : 'bg-background text-muted-foreground hover:border-(--rb-key)/45 hover:bg-(--rb-key)/5 dark:hover:border-(--rb-key-d)/45 dark:hover:bg-(--rb-key-d)/8',
+                    locked
+                      ? cn(
+                          'cursor-not-allowed border-transparent',
+                          cell?.kind === 'check'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200'
+                            : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200',
+                        )
+                      : day.assigned
+                        ? 'border-transparent bg-gantt text-white shadow-sm'
+                        : 'bg-background text-muted-foreground hover:border-gantt/45 hover:bg-gantt/5',
                   )}
                   onClick={() => onToggleDay(day.workDate)}
                 >
@@ -493,10 +603,14 @@ function ProjectDetailsDialog({
                   <span
                     className={cn(
                       'text-[9.5px] font-medium tabular-nums',
-                      day.assigned ? 'opacity-85' : 'text-muted-foreground/70',
+                      locked
+                        ? 'opacity-85'
+                        : day.assigned
+                          ? 'opacity-85'
+                          : 'text-muted-foreground/70',
                     )}
                   >
-                    {format(date, 'd')}
+                    {locked ? `${cell?.actualUt.toFixed(1)}` : format(date, 'd')}
                   </span>
                 </button>
               ) : (
@@ -536,7 +650,7 @@ function ProjectDetailsDialog({
             <Trash2 /> 移除项目
           </Button>
           <Button
-            className="bg-(--rb-key) text-white hover:bg-(--rb-key)/90 dark:bg-(--rb-key-d) dark:text-background dark:hover:bg-(--rb-key-d)/90"
+            className="bg-gantt text-white hover:bg-gantt/90"
             onClick={() => onOpenChange(false)}
           >
             完成

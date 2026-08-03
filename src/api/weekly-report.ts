@@ -29,6 +29,21 @@ export interface WeeklyProjectMetrics {
   myWeekPendingUt: number
 }
 
+/** UT 日历里的填报状态，与 `@/types/ut` 的 UtStatus 同源 */
+export type WeeklyUtStatus = 'check' | 'confirmed' | 'rejected'
+
+/**
+ * 本周实际 UT（只读投影，来自 poa_user_consume）。
+ * 周报只读取不写入：计划存周报自己的表，实际 UT 永远只由 UT 日历页维护。
+ */
+export interface WeeklyActualUt {
+  workDate: string
+  projectId: number
+  projectName: string
+  val: number
+  status: WeeklyUtStatus
+}
+
 export interface WeeklyPlanDay {
   id?: number
   workDate: string
@@ -68,6 +83,8 @@ export interface WeeklyPlan {
   weekDays: Array<{ workDate: string; workday: boolean }>
   projects: Array<WeeklyPlanProject>
   viewers: Array<WeeklyUserOption>
+  /** 本周该用户在 UT 日历里的实际填报，前端与计划合并成甘特图 */
+  actuals: Array<WeeklyActualUt>
 }
 
 export interface WeeklyMeetingGroup {
