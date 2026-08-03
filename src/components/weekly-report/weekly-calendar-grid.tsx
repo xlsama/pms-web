@@ -31,6 +31,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import { leadingPunctuationInset } from '@/lib/optical-align'
 import { cn } from '@/lib/utils'
 
 import { ribbonColor, ribbonVars } from './weekly-palette'
@@ -410,7 +411,7 @@ function DayHeaderCell({ day }: { day: WeekDay }) {
           !day.workday && 'text-muted-foreground/60',
         )}
       >
-        {format(date, 'EEE', { locale: zhCN })}
+        {format(date, 'EEEEE', { locale: zhCN })}
       </span>
       <span className="flex items-center gap-1.5">
         <span
@@ -493,7 +494,7 @@ function DayColumn({
       onKeyDown={handleKeyDown}
     >
       {clickable && !dragging ? (
-        <span className="pointer-events-none absolute inset-x-1 bottom-2 flex items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-semibold text-gantt/0 transition-colors group-hover/col:bg-gantt/8 group-hover/col:text-gantt">
+        <span className="pointer-events-none absolute inset-x-1 bottom-2 flex items-center justify-center gap-1 py-1.5 text-xs font-semibold text-gantt/0 transition-colors group-hover/col:text-gantt">
           <Plus className="size-3.5" />
           添加项目
         </span>
@@ -532,6 +533,11 @@ function AssignmentRibbon({
   })
   const singleDay = segment.dates.length <= 1
   const dragging = move.isDragging || resizeStart.isDragging || resizeEnd.isDragging
+  // 首字是全角开括号时把它悬挂出去，让项目名和下方计划内容视觉左对齐
+  const nameInset =
+    segment.segIndex > 0
+      ? 0
+      : leadingPunctuationInset(segment.project.projectName, { fontSize: 13, fontWeight: 700 })
 
   return (
     <ContextMenu>
@@ -572,10 +578,11 @@ function AssignmentRibbon({
                   <span className="shrink-0 rounded-[5px] bg-(--rb-key)/14 px-1 font-mono text-[9px] text-(--rb-sub) dark:bg-(--rb-key-d)/14 dark:text-(--rb-sub-d)">
                     续
                   </span>
-                ) : editable ? (
-                  <RibbonGrip />
                 ) : null}
-                <span className="truncate text-[13px] leading-tight font-bold text-(--rb-name) dark:text-(--rb-name-d)">
+                <span
+                  className="truncate text-[13px] leading-tight font-bold text-(--rb-name) dark:text-(--rb-name-d)"
+                  style={nameInset ? { marginInlineStart: `-${nameInset}px` } : undefined}
+                >
                   {segment.project.projectName}
                 </span>
               </span>
@@ -623,16 +630,6 @@ function AssignmentRibbon({
         </ContextMenuGroup>
       </ContextMenuContent>
     </ContextMenu>
-  )
-}
-
-function RibbonGrip() {
-  return (
-    <span className="pointer-events-none grid shrink-0 grid-cols-[2px_2px] gap-[2px] opacity-0 transition-opacity group-hover/ribbon:opacity-50">
-      {Array.from({ length: 6 }, (_, index) => (
-        <span key={index} className="size-[2px] rounded-[1px] bg-(--rb-key) dark:bg-(--rb-key-d)" />
-      ))}
-    </span>
   )
 }
 

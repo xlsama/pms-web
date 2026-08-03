@@ -1,13 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import {
-  addDays,
-  addWeeks,
-  format,
-  getISOWeek,
-  getISOWeekYear,
-  parseISO,
-  startOfWeek,
-} from 'date-fns'
+import { addDays, addWeeks, format, getISOWeek, parseISO, startOfWeek } from 'date-fns'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { startTransition, useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -59,16 +51,11 @@ function WeeklyReportPage() {
       <div className="mx-auto flex min-h-full w-full max-w-[1500px] flex-col gap-5 px-4 py-5 sm:px-6 md:h-full md:min-h-0">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-[25px] font-extrabold tracking-tight">
-                {previewUser ? `${previewUser.nickName}的周报` : '周报'}
-              </h1>
-              <span className="rounded-lg border bg-muted/50 px-2.5 py-1 font-mono text-xs text-muted-foreground">
-                {getISOWeekYear(start)} · 第 {getISOWeek(start)} 周
-              </span>
-            </div>
+            <h1 className="text-[22px] font-extrabold tracking-tight">
+              {previewUser ? `${previewUser.nickName}的周报` : '周报'}
+            </h1>
             <p className="mt-1.5 text-[13.5px] text-muted-foreground">
-              安排本周每天投入的项目，周会时共享查看。
+              安排本周每天投入的项目，周会时可共享查看。
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2.5">
@@ -85,10 +72,13 @@ function WeeklyReportPage() {
               </Button>
               <button
                 type="button"
-                className="flex h-full min-w-[132px] items-center justify-center border-x px-3 text-[13px] font-semibold hover:bg-muted/50"
+                className="flex h-full min-w-[240px] items-center justify-center border-x px-3 text-[13px] font-semibold hover:bg-muted/50"
                 onClick={goToCurrentWeek}
               >
                 {format(start, 'M月d日')} – {format(addDays(start, 6), 'M月d日')}
+                <span className="ml-1 font-normal text-muted-foreground">
+                  （第 {getISOWeek(start)} 周）
+                </span>
               </button>
               <Button
                 variant="ghost"

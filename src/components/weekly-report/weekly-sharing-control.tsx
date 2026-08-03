@@ -2,13 +2,14 @@ import { ChevronRight, UserRoundSearch, UsersRound } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-import type { WeeklyUserOption } from '@/api/weekly-report'
+import type { WeeklyMeetingGroup, WeeklyUserOption } from '@/api/weekly-report'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { WeeklyUserPicker } from '@/components/weekly-report/weekly-user-picker'
+import { useTrailingAutosave } from '@/hooks/use-trailing-autosave'
 import {
   useDefaultWeeklyGroup,
   useSaveDefaultWeeklyGroup,
@@ -22,6 +23,11 @@ interface WeeklySharingControlProps {
   onPreviewUser: (user: WeeklyUserOption | null) => void
 }
 
+interface GroupDraft {
+  shareEnabled: boolean
+  users: Array<WeeklyUserOption>
+}
+
 export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklySharingControlProps) {
   const groupQuery = useDefaultWeeklyGroup()
   const sharedOwnersQuery = useSharedWeeklyOwners()
@@ -32,11 +38,38 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
   const [selectedUsers, setSelectedUsers] = useState<Array<WeeklyUserOption>>([])
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const autosave = useTrailingAutosave<GroupDraft, WeeklyMeetingGroup>({
+    delay: 500,
+    save: draft =>
+      saveMutation.mutateAsync({
+        shareEnabled: draft.shareEnabled,
+        memberUserIds: draft.users.map(user => user.id),
+      }),
+    onSettled: (_draft, group) => {
+      // 队列排空，这份就是服务端最终状态，回写一次抹平本地与服务端的差异
+      setShareEnabled(group.shareEnabled)
+      setSelectedUsers(group.members)
+    },
+    onError: () => {
+      toast.error('共享设置保存失败，已恢复为最新状态')
+      void groupQuery.refetch()
+    },
+  })
+
+  const { isBusy, flush } = autosave
+
   useEffect(() => {
     if (!groupQuery.data) return
+    // 本地还有没落盘的改动时，别让服务端数据把用户正在做的操作覆盖掉
+    if (isBusy()) return
     setShareEnabled(groupQuery.data.shareEnabled)
     setSelectedUsers(groupQuery.data.members)
-  }, [groupQuery.data])
+  }, [groupQuery.data, isBusy])
+
+  useEffect(() => {
+    // 面板收起就别再等合并窗口了，立刻落盘
+    if (!open) flush()
+  }, [open, flush])
 
   useEffect(
     () => () => {
@@ -56,28 +89,17 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
     closeTimerRef.current = setTimeout(() => setOpen(false), 180)
   }
 
-  function persist(enabled: boolean, users: Array<WeeklyUserOption>, successMessage?: string) {
-    saveMutation.mutate(
-      { shareEnabled: enabled, memberUserIds: users.map(user => user.id) },
-      {
-        onSuccess: () => {
-          if (successMessage) toast.success(successMessage)
-        },
-        onError: () => {
-          void groupQuery.refetch()
-        },
-      },
-    )
-  }
-
   function changeShareEnabled(enabled: boolean) {
     setShareEnabled(enabled)
-    persist(enabled, selectedUsers, enabled ? '周报共享已开启' : '周报共享已关闭')
+    // 开关是一次性的显式操作，不进合并窗口，直接发
+    autosave.flushNow({ shareEnabled: enabled, users: selectedUsers })
+    toast.success(enabled ? '周报共享已开启' : '周报共享已关闭')
   }
 
   function changeUsers(users: Array<WeeklyUserOption>) {
     setSelectedUsers(users)
-    persist(shareEnabled, users)
+    // 连点连删只在停手后发一次，带的是最后一次的名单
+    autosave.schedule({ shareEnabled, users })
   }
 
   return (
@@ -120,12 +142,12 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
           <Switch
             checked={shareEnabled}
             onCheckedChange={changeShareEnabled}
-            disabled={saveMutation.isPending || groupQuery.isPending}
+            disabled={groupQuery.isPending}
             aria-label="是否共享自己的周报给选中的成员"
           />
         </div>
 
-        <div className="px-4 py-3.5">
+        <div className="px-4">
           <p className="mb-2.5 text-[11.5px] font-bold text-muted-foreground">可见成员</p>
           {groupQuery.isPending ? (
             <Skeleton className="h-10 w-full rounded-lg" />
@@ -182,7 +204,7 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
         </div>
 
         <span className="sr-only" aria-live="polite">
-          {saveMutation.isPending ? '正在自动保存共享设置' : '共享设置已自动保存'}
+          {autosave.saving ? '正在自动保存共享设置' : '共享设置已自动保存'}
         </span>
       </PopoverContent>
     </Popover>
