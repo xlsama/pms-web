@@ -1,7 +1,6 @@
 import { useMemo, useRef } from 'react'
 
 import type { WeeklyUserOption } from '@/api/weekly-report'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Combobox,
   ComboboxChip,
@@ -14,10 +13,14 @@ import {
   ComboboxValue,
 } from '@/components/ui/combobox'
 
+import { WeeklyAvatar } from './weekly-avatar'
+
 interface WeeklyUserPickerProps {
   users: Array<WeeklyUserOption>
   options?: Array<WeeklyUserOption>
   onChange?: (users: Array<WeeklyUserOption>) => void
+  /** 下拉展开状态。外层浮层要靠它判断「用户正在选人」，避免把自己收起来 */
+  onOpenChange?: (open: boolean) => void
   placeholder?: string
 }
 
@@ -25,6 +28,7 @@ export function WeeklyUserPicker({
   users,
   options = [],
   onChange,
+  onOpenChange,
   placeholder = '搜索并选择用户…',
 }: WeeklyUserPickerProps) {
   const availableUsers = useMemo(() => {
@@ -41,13 +45,19 @@ export function WeeklyUserPicker({
       multiple
       value={users}
       onValueChange={value => onChange?.(value)}
+      onOpenChange={next => onOpenChange?.(next)}
       itemToStringValue={user => user.nickName}
     >
       <ComboboxChips ref={chipsRef} className="min-w-0">
         <ComboboxValue>
           {users.map(user => (
-            <ComboboxChip key={user.id}>
-              <UserAvatar user={user} compact />
+            <ComboboxChip
+              key={user.id}
+              // 基类在有删除按钮时把 pr 压成 0，这里用同优先级的 has-* 变体改回来，
+              // 否则 × 会贴着 chip 右边缘
+              className="h-7 gap-1.5 rounded-full pl-2 has-data-[slot=combobox-chip-remove]:pr-1"
+            >
+              <WeeklyAvatar name={user.nickName} seed={user.id} src={user.avatar} size="sm" />
               <span className="max-w-24 truncate">{user.nickName}</span>
             </ComboboxChip>
           ))}
@@ -58,24 +68,13 @@ export function WeeklyUserPicker({
         <ComboboxEmpty>没有找到匹配用户</ComboboxEmpty>
         <ComboboxList>
           {user => (
-            <ComboboxItem key={user.id} value={user}>
-              <UserAvatar user={user} />
+            <ComboboxItem key={user.id} value={user} className="gap-2.5 py-1.5 pl-2">
+              <WeeklyAvatar name={user.nickName} seed={user.id} src={user.avatar} />
               <span className="truncate">{user.nickName}</span>
             </ComboboxItem>
           )}
         </ComboboxList>
       </ComboboxContent>
     </Combobox>
-  )
-}
-
-function UserAvatar({ user, compact = false }: { user: WeeklyUserOption; compact?: boolean }) {
-  return (
-    <Avatar className={compact ? 'size-4' : 'size-6'}>
-      {user.avatar ? <AvatarImage src={user.avatar} alt="" /> : null}
-      <AvatarFallback className={compact ? 'text-[9px]' : undefined}>
-        {user.nickName.slice(0, 1)}
-      </AvatarFallback>
-    </Avatar>
   )
 }

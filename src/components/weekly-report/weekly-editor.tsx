@@ -11,7 +11,6 @@ import type {
   WeeklyPlanSaveRequest,
   WeeklyProjectOption,
 } from '@/api/weekly-report'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -27,6 +26,7 @@ import { useIsDesktop } from '@/hooks/use-mobile'
 import { useSaveWeeklyPlan, useWeeklyProjectOptions } from '@/hooks/use-weekly-report'
 import { cn } from '@/lib/utils'
 
+import { WeeklyAvatar } from './weekly-avatar'
 import { buildLockedCells, buildWeeklyBoard, cellKey } from './weekly-board'
 import type { BoardCell } from './weekly-board'
 import { WeeklyCalendarGrid } from './weekly-calendar-grid'
@@ -350,11 +350,7 @@ export function WeeklyEditor({
       {!plan.editable ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-blue-200/70 bg-linear-to-r from-blue-50/90 to-blue-50/50 px-4 py-2.5 dark:border-blue-500/20 dark:from-blue-500/10 dark:to-blue-500/5">
           <div className="flex min-w-0 items-center gap-2.5">
-            <Avatar className="size-7">
-              <AvatarFallback className="bg-blue-500 text-xs font-bold text-white">
-                {plan.userNickName.slice(0, 1)}
-              </AvatarFallback>
-            </Avatar>
+            <WeeklyAvatar name={plan.userNickName} seed={plan.userId} size="lg" />
             <span className="text-sm font-bold">{plan.userNickName}的周报</span>
             <span className="flex h-6 items-center gap-1.5 rounded-[7px] bg-blue-100 px-2.5 text-xs font-bold text-blue-700 dark:bg-blue-400/15 dark:text-blue-300">
               <Eye className="size-3.5" />
@@ -487,7 +483,7 @@ function ProjectPickerDialog({
           <DialogDescription>从 PMS 项目库中选择，项目名称不能自行创建。</DialogDescription>
         </DialogHeader>
         <div className="relative">
-          <Search className="absolute top-2.5 left-3 size-4 text-muted-foreground" />
+          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             autoFocus
             className="pl-9"

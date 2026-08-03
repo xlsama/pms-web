@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import type { WeeklyMeetingGroup, WeeklyUserOption } from '@/api/weekly-report'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
+import { WeeklyAvatar } from '@/components/weekly-report/weekly-avatar'
 import { WeeklyUserPicker } from '@/components/weekly-report/weekly-user-picker'
 import { useTrailingAutosave } from '@/hooks/use-trailing-autosave'
 import {
@@ -28,14 +28,28 @@ interface GroupDraft {
   users: Array<WeeklyUserOption>
 }
 
+/** 悬停停留多久才算「想打开」，滤掉去点旁边翻周箭头时的顺路划过 */
+const OPEN_DELAY = 160
+/** 移开后的宽限期，够鼠标从触发器斜着走到浮层 */
+const CLOSE_DELAY = 320
+/** 触发器与浮层之间的间隙，浮层顶部会补一条等高透明桥把它接上 */
+const GAP = 8
+
 export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklySharingControlProps) {
   const groupQuery = useDefaultWeeklyGroup()
   const sharedOwnersQuery = useSharedWeeklyOwners()
   const { data: userOptions = [] } = useWeeklyUserOptions('', 200)
   const saveMutation = useSaveDefaultWeeklyGroup()
   const [open, setOpen] = useState(false)
+  // 点开过就锁定：之后只认点外部 / Esc，鼠标飘出去不再自动收起。
+  // 这个面板里要开关、删人、搜人，属于有停留意图的操作面板，不该像 tooltip 那样一移开就没
+  const [pinned, setPinned] = useState(false)
+  // 用户下拉是 Portal 渲染的，DOM 上不在本浮层内；鼠标移上去会触发本浮层的 mouseleave，
+  // 不挡住的话正在选人时整个面板会被收起
+  const [pickerOpen, setPickerOpen] = useState(false)
   const [shareEnabled, setShareEnabled] = useState(false)
   const [selectedUsers, setSelectedUsers] = useState<Array<WeeklyUserOption>>([])
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const autosave = useTrailingAutosave<GroupDraft, WeeklyMeetingGroup>({
@@ -73,20 +87,54 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
 
   useEffect(
     () => () => {
+      if (openTimerRef.current) clearTimeout(openTimerRef.current)
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
     },
     [],
   )
 
-  function cancelClose() {
+  function clearTimers() {
+    if (openTimerRef.current) clearTimeout(openTimerRef.current)
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
+    openTimerRef.current = null
     closeTimerRef.current = null
-    setOpen(true)
+  }
+
+  /**
+   * 悬停意图：触发器紧挨着翻周箭头，鼠标去点箭头必然扫过它。
+   * 停留够 OPEN_DELAY 才认为是想打开，纯路过不弹。
+   */
+  function scheduleOpen() {
+    clearTimers()
+    if (open) return
+    openTimerRef.current = setTimeout(() => setOpen(true), OPEN_DELAY)
+  }
+
+  /** 进入触发器或浮层：只取消倒计时，打开与否交给 scheduleOpen 决定 */
+  function cancelClose() {
+    clearTimers()
   }
 
   function scheduleClose() {
-    if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
-    closeTimerRef.current = setTimeout(() => setOpen(false), 180)
+    clearTimers()
+    // 锁定中或正在选人，一律不自动收起
+    if (pinned || pickerOpen) return
+    closeTimerRef.current = setTimeout(() => setOpen(false), CLOSE_DELAY)
+  }
+
+  function openPinned() {
+    clearTimers()
+    setPinned(true)
+    setOpen(true)
+  }
+
+  function changeOpen(next: boolean) {
+    clearTimers()
+    setOpen(next)
+    if (!next) {
+      setPinned(false)
+      setPickerOpen(false)
+    }
   }
 
   function changeShareEnabled(enabled: boolean) {
@@ -103,7 +151,7 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={changeOpen}>
       <PopoverTrigger
         render={
           <Button
@@ -117,8 +165,9 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
             )}
           />
         }
-        onMouseEnter={cancelClose}
+        onMouseEnter={scheduleOpen}
         onMouseLeave={scheduleClose}
+        onClick={openPinned}
       >
         {previewUser ? (
           <UserRoundSearch data-icon="inline-start" />
@@ -132,11 +181,16 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
 
       <PopoverContent
         align="end"
-        sideOffset={8}
-        className="w-[min(380px,calc(100vw-2rem))] p-0"
+        sideOffset={GAP}
+        className="w-[min(440px,calc(100vw-2rem))] p-0"
         onMouseEnter={cancelClose}
         onMouseLeave={scheduleClose}
+        // 在面板里点过任何东西（开关 / 搜人 / 删人）都视为要停留，转入锁定
+        onPointerDown={openPinned}
       >
+        {/* 把触发器与浮层之间的间隙并入浮层的命中区域，
+            否则鼠标往下移的途中会离开两者、触发收起 */}
+        <span aria-hidden className="absolute inset-x-0 bottom-full" style={{ height: GAP }} />
         <div className="flex items-center justify-between border-b px-4 py-3">
           <span className="text-sm font-bold">周会共享</span>
           <Switch
@@ -156,6 +210,7 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
               users={selectedUsers}
               options={userOptions}
               onChange={changeUsers}
+              onOpenChange={setPickerOpen}
               placeholder="搜索并选择成员…"
             />
           )}
@@ -176,20 +231,16 @@ export function WeeklySharingControl({ previewUser, onPreviewUser }: WeeklyShari
                   key={user.id}
                   type="button"
                   className={cn(
-                    'flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-muted',
+                    'flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-muted',
                     previewUser?.id === user.id && 'bg-gantt/8 hover:bg-gantt/10',
                   )}
                   onClick={() => {
                     onPreviewUser(user)
-                    setOpen(false)
+                    // 走 changeOpen 而不是 setOpen，否则锁定态不会被清掉
+                    changeOpen(false)
                   }}
                 >
-                  <Avatar className="size-6">
-                    {user.avatar ? <AvatarImage src={user.avatar} alt="" /> : null}
-                    <AvatarFallback className="text-[10.5px] font-bold">
-                      {user.nickName.slice(0, 1)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <WeeklyAvatar name={user.nickName} seed={user.id} src={user.avatar} />
                   <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">
                     {user.nickName}
                   </span>

@@ -4,13 +4,14 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect } from 'react'
 
 import type { WeeklyProjectAnalytics, WeeklyProjectOption } from '@/api/weekly-report'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useWeeklyProjectAnalytics } from '@/hooks/use-weekly-report'
 import { cn } from '@/lib/utils'
+
+import { WeeklyAvatar } from './weekly-avatar'
 
 /** 桌面并排时面板展开后的宽度（px），内层固定该宽度，仅外层容器补间宽度避免图表反复重排。 */
 const PANEL_WIDTH = 440
@@ -220,12 +221,12 @@ function MemberContribution({
                       style={{ width: `${Math.max(pct * 100, 0)}%` }}
                     />
                   ) : null}
-                  <Avatar className="relative size-7 shrink-0">
-                    {member.avatar ? <AvatarImage src={member.avatar} alt="" /> : null}
-                    <AvatarFallback className="text-xs">
-                      {member.nickName.slice(0, 1)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <WeeklyAvatar
+                    name={member.nickName}
+                    seed={member.userId}
+                    src={member.avatar}
+                    className="relative"
+                  />
                   <span className="relative min-w-0 flex-1 truncate text-sm font-medium">
                     {member.nickName}
                   </span>
