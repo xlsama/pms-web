@@ -4,6 +4,8 @@ import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { defineConfig } from 'vite-plus'
 
 export default defineConfig({
+  // 部署在 https://pms.yechtech.com/v2/
+  base: '/v2/',
   server: {
     proxy: {
       '/api': {

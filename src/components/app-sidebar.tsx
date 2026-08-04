@@ -34,14 +34,14 @@ export function AppSidebar() {
 
   const handleLogout = () => {
     clearAuth()
-    window.location.href = '/login'
+    window.location.href = `${import.meta.env.BASE_URL}login`
   }
 
   return (
     <Sidebar variant="inset">
       <SidebarHeader>
         <Link to="/">
-          <img src="/logo.svg" alt="PMS" className="mx-auto w-1/2" />
+          <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="PMS" className="mx-auto w-1/2" />
         </Link>
       </SidebarHeader>
       <SidebarContent>

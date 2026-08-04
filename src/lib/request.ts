@@ -45,7 +45,7 @@ export const request = ofetch.create({
       toast.error('登录超时，请重新登录')
 
       useAuthStore.getState().clearAuth()
-      window.location.href = '/login'
+      window.location.href = `${import.meta.env.BASE_URL}login`
       return
     } else if (status === 404) {
       const notFoundError = new Error(data?.message || '页面不存在')

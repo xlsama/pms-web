@@ -10,6 +10,8 @@ const queryClient = new QueryClient()
 
 const router = createRouter({
   routeTree,
+  // 与 vite.config base 对齐（去掉末尾 /）
+  basepath: import.meta.env.BASE_URL.replace(/\/$/, '') || '/',
   context: {
     queryClient,
   },
