@@ -59,7 +59,6 @@ function WeeklyReportPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2.5">
-            <WeeklySharingControl previewUser={previewUser} onPreviewUser={setPreviewUser} />
             <div className="flex h-9 items-center overflow-hidden rounded-[10px] border bg-background shadow-xs">
               <Button
                 variant="ghost"
@@ -90,6 +89,7 @@ function WeeklyReportPage() {
                 <ChevronRight />
               </Button>
             </div>
+            <WeeklySharingControl previewUser={previewUser} onPreviewUser={setPreviewUser} />
           </div>
         </div>
 

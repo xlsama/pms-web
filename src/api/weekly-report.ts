@@ -97,6 +97,8 @@ export interface WeeklyMeetingGroup {
 export interface WeeklyProjectAnalytics {
   project: WeeklyProjectOption
   canViewMembers: boolean
+  /** 项目全周期、全员在周报里排的计划 UT 合计（项目级口径，与下面按区间统计的 trend/members 不同源） */
+  projectPlannedUt?: number
   trend: Array<{
     weekStartDate: string
     plannedDays: number
@@ -120,7 +122,8 @@ export interface WeeklyPlanSaveRequest {
     planContent: string
     resultContent: string
     sortOrder: number
-    days: Array<{ workDate: string; assigned: boolean; dayNote: string }>
+    /** 项目本周计划 UT 总量按已排天数拆分后的当天份额；0 表示交给前端按当天剩余额度自动均分 */
+    days: Array<{ workDate: string; assigned: boolean; plannedUt: number; dayNote: string }>
   }>
 }
 
@@ -155,7 +158,21 @@ export const saveDefaultWeeklyGroup = (body: {
     body,
   })
 
-export const getWeeklyProjectAnalytics = (projectId: number, from: string, to: string) =>
+/**
+ * 预览他人周报时传 ownerUserId + weekStartDate：后端会把统计口径切到周报所有者，
+ * 效果与本人自己看一致（否则查看者不是对方项目的成员，点哪都是 403）。看自己的周报时不传。
+ */
+export const getWeeklyProjectAnalytics = (
+  projectId: number,
+  from: string,
+  to: string,
+  owner?: { userId: number; weekStartDate: string },
+) =>
   request<WeeklyProjectAnalytics>('/api/v2/weekly-plans/analytics/project', {
-    params: { projectId, from, to },
+    params: {
+      projectId,
+      from,
+      to,
+      ...(owner ? { ownerUserId: owner.userId, weekStartDate: owner.weekStartDate } : {}),
+    },
   })

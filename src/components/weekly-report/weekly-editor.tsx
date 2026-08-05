@@ -1,7 +1,7 @@
 import { useDebounce } from 'ahooks'
 import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
-import { Eye, Search, Trash2, X } from 'lucide-react'
+import { Eye, Minus, Plus, Search, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -27,39 +27,59 @@ import { useSaveWeeklyPlan, useWeeklyProjectOptions } from '@/hooks/use-weekly-r
 import { cn } from '@/lib/utils'
 
 import { WeeklyAvatar } from './weekly-avatar'
-import { buildLockedCells, buildWeeklyBoard, cellKey } from './weekly-board'
+import { buildLockedCells, buildWeeklyBoard, cellKey, splitWeekPlannedUt } from './weekly-board'
 import type { BoardCell } from './weekly-board'
 import { WeeklyCalendarGrid } from './weekly-calendar-grid'
 import { WeeklyProjectPanel } from './weekly-project-sheet'
 
 interface DraftProject extends Omit<WeeklyPlanProject, 'days'> {
+  /** 手填的本周计划 UT 总量；0 表示没填，甘特图按当天剩余额度自动均分 */
+  weekPlannedUt: number
   days: Array<{ workDate: string; assigned: boolean; dayNote: string; workday: boolean }>
 }
+
+/** UT 以 0.1 为单位，累加走十分位整数，避免 0.1+0.2 这类浮点尾数 */
+const sumUt = (values: Array<number>) =>
+  values.reduce((sum, value) => sum + Math.round(value * 10), 0) / 10
 
 function createDraftProjects(plan: WeeklyPlan): Array<DraftProject> {
   // 已提交 UT 的格子由实际数据接管：不进草稿，也就不会被保存接口回写
   const locked = buildLockedCells(plan.actuals ?? [])
   return plan.projects.map(project => {
     const existingDays = new Map(project.days.map(day => [day.workDate, day]))
+    const days = plan.weekDays.map(day => {
+      const existing = existingDays.get(day.workDate)
+      const assigned = existing?.assigned ?? (existing?.plannedUt ?? 0) > 0
+      return {
+        ...day,
+        assigned: assigned && !locked.has(cellKey(project.projectId, day.workDate)),
+        dayNote: existing?.dayNote ?? '',
+        plannedUt: existing?.plannedUt ?? 0,
+      }
+    })
     return {
       ...project,
       planContent: project.planContent ?? '',
       resultContent: project.resultContent ?? '',
-      days: plan.weekDays.map(day => {
-        const existing = existingDays.get(day.workDate)
-        const assigned = existing?.assigned ?? (existing?.plannedUt ?? 0) > 0
-        return {
-          ...day,
-          assigned: assigned && !locked.has(cellKey(project.projectId, day.workDate)),
-          dayNote: existing?.dayNote ?? '',
-        }
-      }),
+      // 只累计仍属于草稿的天：已被实际 UT 接管的格子不再由周报计划说了算
+      weekPlannedUt: sumUt(days.filter(day => day.assigned).map(day => day.plannedUt)),
+      days: days.map(({ plannedUt: _plannedUt, ...day }) => day),
     }
   })
 }
 
 function hasAssignments(project: DraftProject) {
   return project.days.some(day => day.assigned)
+}
+
+/** 本周计划 UT 的上限 = 已排天数 × 1.0；改天数后要把超出的值收回来 */
+function assignedDayCount(project: DraftProject) {
+  return project.days.filter(day => day.assigned).length
+}
+
+function clampWeekUt(project: DraftProject): DraftProject {
+  const max = assignedDayCount(project)
+  return project.weekPlannedUt > max ? { ...project, weekPlannedUt: max } : project
 }
 
 function formatDay(workDate: string) {
@@ -69,19 +89,23 @@ function formatDay(workDate: string) {
 function createSaveRequest(projects: Array<DraftProject>, version: number): WeeklyPlanSaveRequest {
   return {
     version,
-    projects: projects.filter(hasAssignments).map((project, index) => ({
-      projectId: project.projectId,
-      planContent: project.planContent ?? '',
-      resultContent: project.resultContent ?? '',
-      sortOrder: index,
-      days: project.days
-        .filter(day => day.assigned)
-        .map(day => ({
+    projects: projects.filter(hasAssignments).map((project, index) => {
+      const assignedDays = project.days.filter(day => day.assigned)
+      // 手填的周总量按天拆开存：接口是日粒度，且甘特图也按同一套拆法画
+      const shares = splitWeekPlannedUt(project.weekPlannedUt, assignedDays.length)
+      return {
+        projectId: project.projectId,
+        planContent: project.planContent ?? '',
+        resultContent: project.resultContent ?? '',
+        sortOrder: index,
+        days: assignedDays.map((day, dayIndex) => ({
           workDate: day.workDate,
           assigned: true,
+          plannedUt: shares[dayIndex] ?? 0,
           dayNote: day.dayNote,
         })),
-    })),
+      }
+    }),
   }
 }
 
@@ -204,7 +228,9 @@ export function WeeklyEditor({
 
   function updateProject(projectId: number, update: (project: DraftProject) => DraftProject) {
     setProjects(current =>
-      current.map(project => (project.projectId === projectId ? update(project) : project)),
+      current.map(project =>
+        project.projectId === projectId ? clampWeekUt(update(project)) : project,
+      ),
     )
   }
 
@@ -236,6 +262,7 @@ export function WeeklyEditor({
           sortOrder: current.length,
           assignedDays: 1,
           totalPlannedUt: 0,
+          weekPlannedUt: 0,
           metrics: {
             projectTotalUt: option.projectTotalUt,
             projectConfirmedUt: option.projectConfirmedUt,
@@ -396,6 +423,16 @@ export function WeeklyEditor({
           open={analyticsProjectId !== null}
           projectId={analyticsProjectId}
           isMobile={!isDesktop}
+          // editable 即「这是我自己的周报」，预览他人时才带 owner 让统计按对方口径出
+          owner={
+            plan.editable
+              ? undefined
+              : {
+                  userId: plan.userId,
+                  weekStartDate: plan.weekStartDate,
+                  nickName: plan.userNickName,
+                }
+          }
           onClose={() => setAnalyticsProjectId(null)}
         />
       </div>
@@ -420,6 +457,12 @@ export function WeeklyEditor({
             updateProject(editingProject.projectId, project => ({
               ...project,
               planContent: value,
+            }))
+          }
+          onWeekUtChange={value =>
+            updateProject(editingProject.projectId, project => ({
+              ...project,
+              weekPlannedUt: value,
             }))
           }
           onToggleDay={date => toggleProjectDay(editingProject.projectId, date)}
@@ -536,12 +579,121 @@ function ProjectPickerDialog({
   )
 }
 
+/**
+ * 本周计划 UT：0.5 一档的快捷按钮（上限 = 已排天数 × 1.0，最多 10 档）+ ±0.1 微调。
+ * 留空是有意义的默认值——甘特图会按当天剩余额度自动均分；填了才改由用户说了算。
+ */
+function WeekUtPicker({
+  value,
+  assignedDays,
+  onChange,
+}: {
+  value: number
+  /** grantedUt 是甘特图上真正分到的量，可能因当天额度不足小于拆分值 */
+  assignedDays: Array<{ workDate: string; grantedUt: number }>
+  onChange: (value: number) => void
+}) {
+  const maxUt = assignedDays.length
+  const steps = Array.from({ length: maxUt * 2 }, (_, index) => (index + 1) / 2)
+  const granted = sumUt(assignedDays.map(day => day.grantedUt))
+  // 填的量当天排不下时，说清楚实际能排多少——否则用户会疑惑色带上的数字为什么比填的小
+  const shortfall = value > 0 && Math.round(granted * 10) < Math.round(value * 10)
+
+  function stepBy(deltaTenths: number) {
+    const next = Math.round(value * 10) + deltaTenths
+    onChange(Math.min(maxUt * 10, Math.max(0, next)) / 10)
+  }
+
+  return (
+    <div>
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <span className="text-[12.5px] font-bold text-muted-foreground">本周 UT</span>
+        <span className="text-[11.5px] text-muted-foreground tabular-nums">
+          {maxUt > 0 ? `已排 ${maxUt} 天，最多 ${maxUt.toFixed(1)}` : '先在上面选日期'}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap gap-1.5">
+          {steps.map(step => {
+            const selected = Math.round(value * 10) === Math.round(step * 10)
+            return (
+              <button
+                key={step}
+                type="button"
+                aria-pressed={selected}
+                className={cn(
+                  'h-8 min-w-[3rem] rounded-[9px] border text-[12.5px] font-bold tabular-nums transition-colors',
+                  selected
+                    ? 'border-transparent bg-gantt text-white shadow-sm'
+                    : 'bg-background text-muted-foreground hover:border-gantt/45 hover:bg-gantt/5',
+                )}
+                // 再点一次选中项即取消，回到自动均分
+                onClick={() => onChange(selected ? 0 : step)}
+              >
+                {step.toFixed(1)}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="ml-auto flex h-8 items-center gap-0.5 rounded-[9px] border px-0.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="size-7"
+            disabled={maxUt === 0 || value <= 0}
+            aria-label="减少 0.1 UT"
+            onClick={() => stepBy(-1)}
+          >
+            <Minus />
+          </Button>
+          <span
+            className={cn(
+              'min-w-[2.75rem] text-center text-[12.5px] font-bold tabular-nums',
+              value > 0 ? 'text-foreground' : 'text-muted-foreground',
+            )}
+          >
+            {value > 0 ? value.toFixed(1) : '自动'}
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            className="size-7"
+            disabled={maxUt === 0 || Math.round(value * 10) >= maxUt * 10}
+            aria-label="增加 0.1 UT"
+            onClick={() => stepBy(1)}
+          >
+            <Plus />
+          </Button>
+        </div>
+      </div>
+
+      <p className={cn('mt-1.5 text-xs', shortfall ? 'text-amber-600' : 'text-muted-foreground')}>
+        {maxUt === 0
+          ? '选好日期后才能填本周 UT。'
+          : value > 0
+            ? `按已排天数拆到每天：${assignedDays
+                .map(
+                  day =>
+                    `${format(parseISO(day.workDate), 'EEEEE', { locale: zhCN })} ${day.grantedUt.toFixed(1)}`,
+                )
+                .join(' · ')}${shortfall ? `　当天额度不够，实际只排到 ${granted.toFixed(1)}` : ''}`
+            : '不填则按当天剩余额度，与当天其他项目自动均分。'}
+      </p>
+    </div>
+  )
+}
+
 function ProjectDetailsDialog({
   project,
   cells,
   open,
   onOpenChange,
   onContentChange,
+  onWeekUtChange,
   onToggleDay,
   onRemove,
 }: {
@@ -550,10 +702,12 @@ function ProjectDetailsDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
   onContentChange: (value: string) => void
+  onWeekUtChange: (value: number) => void
   onToggleDay: (workDate: string) => void
   onRemove: () => void
 }) {
   const cellByDate = new Map((cells ?? []).map(cell => [cell.workDate, cell]))
+  const assignedDays = project.days.filter(day => day.assigned)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
@@ -621,6 +775,15 @@ function ProjectDetailsDialog({
             })}
           </div>
         </div>
+
+        <WeekUtPicker
+          value={project.weekPlannedUt}
+          assignedDays={assignedDays.map(day => ({
+            workDate: day.workDate,
+            grantedUt: cellByDate.get(day.workDate)?.plannedUt ?? 0,
+          }))}
+          onChange={onWeekUtChange}
+        />
 
         <div>
           <label className="mb-2 block text-[12.5px] font-bold text-muted-foreground">

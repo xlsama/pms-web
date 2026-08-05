@@ -24,8 +24,12 @@ export const weeklyReportKeys = {
     [...weeklyReportKeys.all, 'user-options', q, limit] as const,
   group: () => [...weeklyReportKeys.all, 'group'] as const,
   sharedOwners: () => [...weeklyReportKeys.all, 'shared-owners'] as const,
-  analytics: (projectId: number | null, from: string, to: string) =>
-    [...weeklyReportKeys.all, 'analytics', projectId, from, to] as const,
+  analytics: (
+    projectId: number | null,
+    from: string,
+    to: string,
+    owner?: { userId: number; weekStartDate: string },
+  ) => [...weeklyReportKeys.all, 'analytics', projectId, from, to, owner ?? null] as const,
 }
 
 export const useWeeklyPlan = (ownerUserId: number, weekStart: string) =>
@@ -79,10 +83,16 @@ export function useSaveDefaultWeeklyGroup() {
   })
 }
 
-export const useWeeklyProjectAnalytics = (projectId: number | null, from: string, to: string) =>
+export const useWeeklyProjectAnalytics = (
+  projectId: number | null,
+  from: string,
+  to: string,
+  /** 预览他人周报时传入，统计口径切到该所有者；看自己的周报时传 undefined */
+  owner?: { userId: number; weekStartDate: string },
+) =>
   useQuery({
-    queryKey: weeklyReportKeys.analytics(projectId, from, to),
-    queryFn: () => getWeeklyProjectAnalytics(projectId!, from, to),
+    queryKey: weeklyReportKeys.analytics(projectId, from, to, owner),
+    queryFn: () => getWeeklyProjectAnalytics(projectId!, from, to, owner),
     enabled: projectId !== null,
     ...NO_CACHE,
   })

@@ -25,11 +25,14 @@ export function WeeklyProjectPanel({
   open,
   projectId,
   isMobile,
+  owner,
   onClose,
 }: {
   open: boolean
   projectId: number | null
   isMobile: boolean
+  /** 预览他人周报时传入，统计按该所有者的口径出；看自己的周报时不传 */
+  owner?: { userId: number; weekStartDate: string; nickName: string }
   onClose: () => void
 }) {
   useEffect(() => {
@@ -100,7 +103,7 @@ export function WeeklyProjectPanel({
               >
                 <X />
               </Button>
-              <ProjectAnalytics projectId={projectId} />
+              <ProjectAnalytics projectId={projectId} owner={owner} />
             </div>
           </motion.aside>
         ) : null}
@@ -109,11 +112,22 @@ export function WeeklyProjectPanel({
   )
 }
 
-function ProjectAnalytics({ projectId }: { projectId: number | null }) {
+function ProjectAnalytics({
+  projectId,
+  owner,
+}: {
+  projectId: number | null
+  owner?: { userId: number; weekStartDate: string; nickName: string }
+}) {
   const currentWeek = startOfWeek(new Date(), { weekStartsOn: 1 })
   const from = format(subWeeks(currentWeek, 11), 'yyyy-MM-dd')
   const to = format(new Date(), 'yyyy-MM-dd')
-  const { data, isPending, isError } = useWeeklyProjectAnalytics(projectId, from, to)
+  const { data, isPending, isError } = useWeeklyProjectAnalytics(
+    projectId,
+    from,
+    to,
+    owner && { userId: owner.userId, weekStartDate: owner.weekStartDate },
+  )
 
   return (
     <>
@@ -137,8 +151,12 @@ function ProjectAnalytics({ projectId }: { projectId: number | null }) {
           </div>
         ) : (
           <>
-            <UtOverview project={data.project} />
-            <MemberContribution members={data.members} canViewMembers={data.canViewMembers} />
+            <UtOverview project={data.project} plannedUt={data.projectPlannedUt ?? 0} />
+            <MemberContribution
+              members={data.members}
+              canViewMembers={data.canViewMembers}
+              ownerName={owner?.nickName}
+            />
           </>
         )}
       </div>
@@ -146,8 +164,8 @@ function ProjectAnalytics({ projectId }: { projectId: number | null }) {
   )
 }
 
-/** UT 概览：项目总量 / 已确认 / 剩余（项目全周期累计口径）。 */
-function UtOverview({ project }: { project: WeeklyProjectOption }) {
+/** UT 概览：项目总量 / 已确认 / 剩余 / 周报计划（都是项目全员、全周期累计口径）。 */
+function UtOverview({ project, plannedUt }: { project: WeeklyProjectOption; plannedUt: number }) {
   const remaining = Math.max(0, project.projectTotalUt - project.projectConfirmedUt)
   const projectPct =
     project.projectTotalUt > 0
@@ -160,10 +178,12 @@ function UtOverview({ project }: { project: WeeklyProjectOption }) {
         <CardTitle className="text-sm">UT 概览</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <div className="grid gap-2 sm:grid-cols-3">
+        {/* 面板只有 440px 宽，四个指标排成一行会挤成两行文字，故 2×2 */}
+        <div className="grid grid-cols-2 gap-2">
           <SummaryMetric label="项目总 UT" value={project.projectTotalUt} />
           <SummaryMetric label="已确认 UT" value={project.projectConfirmedUt} />
           <SummaryMetric label="项目剩余 UT" value={remaining} />
+          <SummaryMetric label="总计划 UT" value={plannedUt} hint="全员在周报里排的计划 UT 合计" />
         </div>
         <Progress value={projectPct} />
       </CardContent>
@@ -175,9 +195,12 @@ function UtOverview({ project }: { project: WeeklyProjectOption }) {
 function MemberContribution({
   members,
   canViewMembers,
+  ownerName,
 }: {
   members: WeeklyProjectAnalytics['members']
   canViewMembers: boolean
+  /** 预览他人周报时的所有者昵称：非全员视角下列出的是 TA 的投入，标题不能再写「我的」 */
+  ownerName?: string
 }) {
   const totalUt = members.reduce((sum, member) => sum + member.confirmedUt, 0)
   const totalDays = members.reduce((sum, member) => sum + member.plannedDays, 0)
@@ -191,7 +214,9 @@ function MemberContribution({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">{canViewMembers ? '成员投入' : '我的投入'}</CardTitle>
+        <CardTitle className="text-sm">
+          {canViewMembers ? '成员投入' : ownerName ? `${ownerName}的投入` : '我的投入'}
+        </CardTitle>
         {canViewMembers && members.length > 1 ? (
           <p className="text-xs text-muted-foreground">
             横条为近 12 周{basis === 'days' ? '参与天数' : '确认 UT'}占比。
@@ -243,9 +268,9 @@ function MemberContribution({
   )
 }
 
-function SummaryMetric({ label, value }: { label: string; value: number }) {
+function SummaryMetric({ label, value, hint }: { label: string; value: number; hint?: string }) {
   return (
-    <div className="rounded-lg bg-muted/60 p-3">
+    <div className="rounded-lg bg-muted/60 p-3" title={hint}>
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="mt-1 text-xl font-semibold tabular-nums">
         {value.toFixed(1)} <span className="text-xs font-normal text-muted-foreground">UT</span>

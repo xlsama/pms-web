@@ -32,7 +32,7 @@ export interface BoardCell {
   kind: CellKind | null
   /** kind 为实际状态时的 UT 值 */
   actualUt: number
-  /** kind 为 plan 时按额度均分出的预估 UT；0 表示当天额度已被实际 UT 占满 */
+  /** kind 为 plan 时当天分到的计划 UT（手填拆分值优先，未填则按剩余额度均分）；0 表示没分到额度 */
   plannedUt: number
   /** 已提交，不可拖动 / 不可取消 */
   locked: boolean
@@ -47,6 +47,8 @@ export interface BoardProject {
   planContent: string | null
   /** 本周只在 UT 日历里出现过、周报没排过——这种行是既成事实，不能删 */
   actualOnly: boolean
+  /** 用户在项目弹窗里手填的本周计划 UT 总量；0 表示没填，按当天剩余额度自动均分 */
+  weekPlannedUt: number
   days: Array<BoardCell>
 }
 
@@ -63,9 +65,9 @@ export interface DayQuota {
   remainingUt: number
   /** 当天计划格子数 */
   planCount: number
-  /** 计划实际分到的额度合计（planCount > 0 时等于 remainingUt） */
+  /** 计划实际分到的额度合计：有项目没手填时会把剩余额度分光，全是手填时可能小于 remainingUt */
   plannedUt: number
-  /** 还能再排几个项目 = 剩余额度 ÷ 0.1 − 已排数 */
+  /** 还能再排几个项目：手填项目占走的额度不算在内，且要给没手填的项目各留 0.1 */
   addableCount: number
 }
 
@@ -79,6 +81,8 @@ export interface BoardDraftProject {
   projectName: string
   projectCode: string | null
   planContent: string | null
+  /** 手填的本周计划 UT 总量，0 或缺省表示自动均分 */
+  weekPlannedUt?: number
   days: Array<{ workDate: string; assigned: boolean }>
 }
 
@@ -103,6 +107,17 @@ function splitTenths(totalTenths: number, count: number): Array<number> {
   const base = Math.floor(totalTenths / count)
   const extra = totalTenths % count
   return Array.from({ length: count }, (_, index) => base + (index < extra ? 1 : 0))
+}
+
+/**
+ * 把手填的「本周计划 UT」总量按已排天数拆到每一天：均分，余数从前往后各多 0.1。
+ * 保存接口按日存储，甘特图也按日展示，两处必须用同一套拆法，否则存进去和画出来对不上。
+ * 单日上限 1.0，超出「天数 × 1.0」的部分丢弃（弹窗已按天数卡上限，这里是兜底）。
+ */
+export function splitWeekPlannedUt(weekPlannedUt: number, dayCount: number): Array<number> {
+  if (dayCount <= 0) return []
+  const capped = Math.min(Math.max(0, toTenths(weekPlannedUt)), dayCount * DAY_QUOTA_TENTHS)
+  return splitTenths(capped, dayCount).map(tenths => tenths / 10)
 }
 
 /**
@@ -191,6 +206,7 @@ export function buildWeeklyBoard({
       projectCode: project.projectCode,
       planContent: project.planContent,
       actualOnly: false,
+      weekPlannedUt: project.weekPlannedUt ?? 0,
       assignedDates: new Set(project.days.filter(day => day.assigned).map(day => day.workDate)),
     })),
     ...extraProjects.map(project => ({
@@ -199,6 +215,7 @@ export function buildWeeklyBoard({
       projectCode: null,
       planContent: null,
       actualOnly: true,
+      weekPlannedUt: 0,
       assignedDates: new Set<string>(),
     })),
   ].map(row => ({
@@ -207,6 +224,7 @@ export function buildWeeklyBoard({
     projectCode: row.projectCode,
     planContent: row.planContent,
     actualOnly: row.actualOnly,
+    weekPlannedUt: row.weekPlannedUt,
     days: weekDays.map<BoardCell>(day => {
       const actual = merged.get(cellKey(row.projectId, day.workDate))
       const locked = actual ? isSubmitted(actual.kind) : false
@@ -225,7 +243,17 @@ export function buildWeeklyBoard({
     }),
   }))
 
-  // 逐天把剩余额度均分给计划格子（行序即分配顺序）
+  // 手填项目每天期望拿到的份额，口径与保存时的拆分完全一致
+  const desiredTenths = new Map<string, number>()
+  for (const row of rows) {
+    if (row.weekPlannedUt <= 0) continue
+    const assignedDates = row.days.filter(cell => cell.assigned).map(cell => cell.workDate)
+    splitWeekPlannedUt(row.weekPlannedUt, assignedDates.length).forEach((ut, index) => {
+      desiredTenths.set(cellKey(row.projectId, assignedDates[index]), toTenths(ut))
+    })
+  }
+
+  // 逐天分配额度：手填的项目按自己的份额先取，剩下的再均分给没填的（行序即分配顺序）
   const quotaByDate = new Map<string, DayQuota>()
   weekDays.forEach((day, dayIndex) => {
     const confirmedTenths = Math.max(0, confirmedTenthsByDate.get(day.workDate) ?? 0)
@@ -233,12 +261,28 @@ export function buildWeeklyBoard({
     const usedTenths = Math.min(DAY_QUOTA_TENTHS, confirmedTenths + checkTenths)
     const remainingTenths = DAY_QUOTA_TENTHS - usedTenths
     // 已驳回的格子也属于草稿、同样参与分配，故按 assigned 而非 kind 判断
-    const planCells = rows.map(row => row.days[dayIndex]).filter(cell => cell.assigned)
-    const shares = splitTenths(remainingTenths, planCells.length)
-    planCells.forEach((cell, index) => {
+    const planCells = rows
+      .map(row => ({ row, cell: row.days[dayIndex] }))
+      .filter(x => x.cell.assigned)
+    const explicit = planCells.filter(x => x.row.weekPlannedUt > 0)
+    const implicit = planCells.filter(x => x.row.weekPlannedUt <= 0)
+
+    let leftTenths = remainingTenths
+    for (const { row, cell } of explicit) {
+      const want = desiredTenths.get(cellKey(row.projectId, day.workDate)) ?? 0
+      // 当天额度不够手填的量时只给到能给的部分，剩下的在图上就是没兑现
+      const give = Math.max(0, Math.min(want, leftTenths))
+      cell.plannedUt = give / 10
+      cell.unfulfilled = give === 0
+      leftTenths -= give
+    }
+    const shares = splitTenths(leftTenths, implicit.length)
+    implicit.forEach(({ cell }, index) => {
       cell.plannedUt = shares[index] / 10
-      cell.unfulfilled = cell.plannedUt === 0
+      cell.unfulfilled = shares[index] === 0
     })
+
+    const plannedTenths = remainingTenths - (implicit.length > 0 ? 0 : leftTenths)
     quotaByDate.set(day.workDate, {
       workDate: day.workDate,
       workday: workdayByDate.get(day.workDate) ?? true,
@@ -247,8 +291,9 @@ export function buildWeeklyBoard({
       usedUt: usedTenths / 10,
       remainingUt: remainingTenths / 10,
       planCount: planCells.length,
-      plannedUt: planCells.length > 0 ? remainingTenths / 10 : 0,
-      addableCount: Math.max(0, remainingTenths - planCells.length),
+      plannedUt: planCells.length > 0 ? plannedTenths / 10 : 0,
+      // 新项目至少要 0.1，且不能抢走没填项目各自的那 0.1
+      addableCount: Math.max(0, leftTenths - implicit.length),
     })
   })
 

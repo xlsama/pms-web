@@ -32,6 +32,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { leadingPunctuationInset } from '@/lib/optical-align'
 import { cn } from '@/lib/utils'
 
@@ -477,7 +478,7 @@ function DayHeaderCell({ day, quota }: { day: WeekDay; quota?: DayQuota }) {
   return (
     <div
       className={cn(
-        'flex flex-col gap-1 border-r px-3.5 py-2.5 last:border-r-0',
+        'flex flex-col gap-1 border-r border-border/60 px-3.5 py-2.5 last:border-r-0',
         !day.workday && 'bg-muted/40 gantt-stripes',
         today && day.workday && 'bg-gantt/5 shadow-[inset_0_2px_0_var(--gantt)]',
       )}
@@ -535,7 +536,6 @@ function DayColumn({
   onAddProject: () => void
 }) {
   const date = parseISO(day.workDate)
-  const today = isToday(date)
   const { setNodeRef } = useDroppable({
     id: `weekly-day-${day.workDate}`,
     disabled: !day.workday,
@@ -564,13 +564,14 @@ function DayColumn({
       aria-disabled={!clickable || undefined}
       style={{ gridColumn: columnIndex + 1, gridRow: '1 / -1' }}
       className={cn(
-        'group/col relative -my-1.5 border-r border-border/60 last:border-r-0 focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-gantt focus-visible:outline-none focus-visible:ring-inset',
+        'group/col relative -my-1.5 border-r border-border/40 last:border-r-0 focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-gantt focus-visible:outline-none focus-visible:ring-inset',
         clickable
           ? 'cursor-pointer'
           : !day.workday
             ? 'cursor-not-allowed bg-muted/30 gantt-stripes'
             : 'cursor-default',
-        today && day.workday && 'bg-gantt/[0.045]',
+        // 今天只在表头标记（底色 + 顶部实线），画布区不再整列铺底色：
+        // 那条竖着的浅色带会和项目色带抢注意力，且容易被误读成「这一列被选中了」
         clickable && !dragging && 'hover:bg-gantt/[0.03]',
       )}
       onClick={clickable ? onAddProject : undefined}
@@ -625,10 +626,16 @@ function AssignmentRibbon({
   const dragging = move.isDragging || resizeStart.isDragging || resizeEnd.isDragging
   const style = CELL_STYLES[segment.kind]
   const isPlan = segment.kind === 'plan'
-  // 有数字 = 事实，没数字 = 计划：预估 UT 是跨项目均分出来的，印在色带上会随增删项目跳动
-  const utText = isPlan ? null : `${segment.actualUt.toFixed(1)} UT`
+  // 自动均分出来的预估 UT 不印在色带上——它会随当天增删项目跳动，看着像数据在乱变；
+  // 手填的本周 UT 是用户自己定的量，稳定，才值得占这个位置。
+  const utText = isPlan
+    ? segment.project.weekPlannedUt > 0 && segment.plannedUt > 0
+      ? `${segment.plannedUt.toFixed(1)} UT`
+      : null
+    : `${segment.actualUt.toFixed(1)} UT`
   const hint = segment.unfulfilled
-    ? '当天 UT 已满，这段计划没兑现'
+    ? // 额度可能是被已提交的实际 UT 吃掉的，也可能是被同一天填了本周 UT 的项目占走的
+      '当天额度已被占满，这段计划没兑现'
     : segment.kind === 'rejected'
       ? '这笔 UT 已被驳回，去 UT 日历重新提交'
       : segment.locked
@@ -653,65 +660,96 @@ function AssignmentRibbon({
           gridRow: segment.row + 1,
         }}
       >
-        <button
-          ref={move.setNodeRef}
-          type="button"
-          className={cn(
-            'relative flex size-full min-w-0 flex-col justify-center gap-px overflow-hidden rounded-[9px] px-3.5 text-left transition-shadow',
-            dragging
-              ? 'border-[1.5px] border-dashed border-gantt/45 bg-gantt/5'
-              : cn(
-                  style.surface,
-                  'shadow-xs after:absolute after:inset-0 after:bg-foreground after:opacity-0 after:transition-opacity hover:shadow-sm hover:after:opacity-4',
-                ),
-            segment.unfulfilled && !dragging && 'opacity-55 saturate-50',
-            selected &&
-              !dragging &&
-              'shadow-[0_0_0_1.5px_var(--gantt),0_8px_18px_-8px_var(--gantt)]',
-            !draggable && 'cursor-pointer',
-            'focus-visible:ring-2 focus-visible:ring-gantt focus-visible:outline-none',
-          )}
-          title={hint ?? undefined}
-          aria-label={`${segment.project.projectName}，${KIND_LABEL[segment.kind]}，${segment.dates.length}天${
-            utText ? `，实际 ${utText}` : ''
-          }${segment.locked ? '，已提交不可修改' : draggable ? '，拖动可调整日期' : ''}`}
-          onClick={onOpen}
-          {...move.listeners}
-          {...move.attributes}
-        >
+        {/* 色带上项目名和计划内容都会被截断，hover 展开完整文本；用组件而非原生 title，
+            原生 tooltip 延迟长、不能换行，长段计划内容读不了 */}
+        <Tooltip>
+          <TooltipTrigger
+            delay={320}
+            render={
+              <button
+                ref={move.setNodeRef}
+                type="button"
+                className={cn(
+                  'relative flex size-full min-w-0 flex-col justify-center gap-px overflow-hidden rounded-[9px] px-3.5 text-left transition-shadow',
+                  dragging
+                    ? 'border-[1.5px] border-dashed border-gantt/45 bg-gantt/5'
+                    : cn(
+                        style.surface,
+                        'shadow-xs after:absolute after:inset-0 after:bg-foreground after:opacity-0 after:transition-opacity hover:shadow-sm hover:after:opacity-4',
+                      ),
+                  segment.unfulfilled && !dragging && 'opacity-55 saturate-50',
+                  selected &&
+                    !dragging &&
+                    'shadow-[0_0_0_1.5px_var(--gantt),0_8px_18px_-8px_var(--gantt)]',
+                  !draggable && 'cursor-pointer',
+                  'focus-visible:ring-2 focus-visible:ring-gantt focus-visible:outline-none',
+                )}
+                aria-label={`${segment.project.projectName}，${KIND_LABEL[segment.kind]}，${segment.dates.length}天${
+                  utText ? `，${isPlan ? '计划' : '实际'} ${utText}` : ''
+                }${segment.locked ? '，已提交不可修改' : draggable ? '，拖动可调整日期' : ''}`}
+                onClick={onOpen}
+                {...move.listeners}
+                {...move.attributes}
+              >
+                {dragging ? null : (
+                  <>
+                    <span className="relative flex min-w-0 items-center gap-1.5">
+                      <span
+                        className={cn(
+                          'truncate text-[13px] leading-tight font-bold',
+                          style.label,
+                          segment.unfulfilled && 'line-through',
+                        )}
+                        style={nameInset ? { marginInlineStart: `-${nameInset}px` } : undefined}
+                      >
+                        {segment.project.projectName}
+                      </span>
+                      {utText ? (
+                        <span
+                          className={cn(
+                            'ml-auto flex shrink-0 items-center gap-1 text-[11px] font-semibold tabular-nums',
+                            style.sub,
+                          )}
+                        >
+                          {segment.locked ? <Lock className="size-2.5" /> : null}
+                          {utText}
+                        </span>
+                      ) : null}
+                    </span>
+                    {summary ? (
+                      <span className={cn('relative truncate text-xs leading-tight', style.sub)}>
+                        {summary}
+                      </span>
+                    ) : null}
+                  </>
+                )}
+              </button>
+            }
+          />
           {dragging ? null : (
-            <>
-              <span className="relative flex min-w-0 items-center gap-1.5">
-                <span
-                  className={cn(
-                    'truncate text-[13px] leading-tight font-bold',
-                    style.label,
-                    segment.unfulfilled && 'line-through',
-                  )}
-                  style={nameInset ? { marginInlineStart: `-${nameInset}px` } : undefined}
-                >
-                  {segment.project.projectName}
-                </span>
-                {utText ? (
-                  <span
-                    className={cn(
-                      'ml-auto flex shrink-0 items-center gap-1 text-[11px] font-semibold tabular-nums',
-                      style.sub,
-                    )}
-                  >
-                    {segment.locked ? <Lock className="size-2.5" /> : null}
-                    {utText}
-                  </span>
-                ) : null}
+            <TooltipContent
+              side="top"
+              sideOffset={6}
+              className="max-w-[22rem] flex-col items-start gap-1.5 py-2 text-left"
+            >
+              <span className="text-[12.5px] leading-snug font-semibold">
+                {segment.project.projectName}
               </span>
-              {summary ? (
-                <span className={cn('relative truncate text-xs leading-tight', style.sub)}>
-                  {summary}
+              <span className="text-[11px] text-background/65 tabular-nums">
+                {dateRangeText(segment)}
+                {utText ? ` · ${isPlan ? '计划' : '实际'} ${utText}` : ''}
+              </span>
+              {segment.project.planContent ? (
+                <span className="text-[11.5px] leading-relaxed whitespace-pre-wrap text-background/85">
+                  {segment.project.planContent}
                 </span>
-              ) : null}
-            </>
+              ) : (
+                <span className="text-[11.5px] text-background/55">未填写本周工作内容</span>
+              )}
+              {hint ? <span className="text-[11px] text-background/65">{hint}</span> : null}
+            </TooltipContent>
           )}
-        </button>
+        </Tooltip>
 
         {draggable && !dragging ? (
           <>
@@ -974,6 +1012,14 @@ function buildDragPreview(
     return { start, end, valid: false, reason: '当天 UT 已满' }
   }
   return { start, end, valid: true }
+}
+
+/** 色带 tooltip 里的日期范围：单日给到星期几，跨天给起止和天数 */
+function dateRangeText(segment: AssignmentSegment): string {
+  const start = parseISO(segment.dates[0])
+  if (segment.dates.length === 1) return format(start, 'M月d日 EEEE', { locale: zhCN })
+  const end = parseISO(segment.dates[segment.dates.length - 1])
+  return `${format(start, 'M月d日')} – ${format(end, 'M月d日')} · ${segment.dates.length} 天`
 }
 
 function formatPreviewRange(preview: DragPreview, weekDays: Array<WeekDay>): string {
