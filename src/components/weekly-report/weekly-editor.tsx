@@ -710,7 +710,8 @@ function ProjectDetailsDialog({
   const assignedDays = project.days.filter(day => day.assigned)
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      {/* 本周 UT 快捷档 + 右侧「自动」微调需并排，2xl 会挤换行 */}
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5">
             <span className="truncate">{project.projectName}</span>
